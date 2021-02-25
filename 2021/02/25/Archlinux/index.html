@@ -1,0 +1,137 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"><meta name="author" content="BillyShao"><meta name="renderer" content="webkit"><meta name="copyright" content="BillyShao"><meta name="keywords" content="Hexo"><meta name="description" content=""><meta name="Cache-Control" content="no-cache"><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"><title>硬核Linux发行版：记录一次完整的Archlinux安装过程 · FUNCIATY blog</title><link rel="stylesheet" href="/css/style.css?v=2018.7.9"><link rel="stylesheet" href="/css/animation.css?v=2018.7.9"><link rel="icon" href="/img/assets/favicon.ico"><link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css?version=1.5.6"><!-- scripts--><script>(function( w ){
+  "use strict";
+  // rel=preload support test
+  if( !w.loadCSS ){
+    w.loadCSS = function(){};
+  }
+  // define on the loadCSS obj
+  var rp = loadCSS.relpreload = {};
+  // rel=preload feature support test
+  // runs once and returns a function for compat purposes
+  rp.support = (function(){
+    var ret;
+    try {
+      ret = w.document.createElement( "link" ).relList.supports( "preload" );
+    } catch (e) {
+      ret = false;
+    }
+    return function(){
+      return ret;
+    };
+  })();
+
+  // if preload isn't supported, get an asynchronous load by using a non-matching media attribute
+  // then change that media back to its intended value on load
+  rp.bindMediaToggle = function( link ){
+    // remember existing media attr for ultimate state, or default to 'all'
+    var finalMedia = link.media || "all";
+
+    function enableStylesheet(){
+      link.media = finalMedia;
+    }
+
+    // bind load handlers to enable media
+    if( link.addEventListener ){
+      link.addEventListener( "load", enableStylesheet );
+    } else if( link.attachEvent ){
+      link.attachEvent( "onload", enableStylesheet );
+    }
+
+    // Set rel and non-applicable media type to start an async request
+    // note: timeout allows this to happen async to let rendering continue in IE
+    setTimeout(function(){
+      link.rel = "stylesheet";
+      link.media = "only x";
+    });
+    // also enable media after 3 seconds,
+    // which will catch very old browsers (android 2.x, old firefox) that don't support onload on link
+    setTimeout( enableStylesheet, 3000 );
+  };
+
+  // loop through link elements in DOM
+  rp.poly = function(){
+    // double check this to prevent external calls from running
+    if( rp.support() ){
+      return;
+    }
+    var links = w.document.getElementsByTagName( "link" );
+    for( var i = 0; i < links.length; i++ ){
+      var link = links[ i ];
+      // qualify links to those with rel=preload and as=style attrs
+      if( link.rel === "preload" && link.getAttribute( "as" ) === "style" && !link.getAttribute( "data-loadcss" ) ){
+        // prevent rerunning on link
+        link.setAttribute( "data-loadcss", true );
+        // bind listeners to toggle media back
+        rp.bindMediaToggle( link );
+      }
+    }
+  };
+
+  // if unsupported, run the polyfill
+  if( !rp.support() ){
+    // run once at least
+    rp.poly();
+
+    // rerun poly on an interval until onload
+    var run = w.setInterval( rp.poly, 500 );
+    if( w.addEventListener ){
+      w.addEventListener( "load", function(){
+        rp.poly();
+        w.clearInterval( run );
+      } );
+    } else if( w.attachEvent ){
+      w.attachEvent( "onload", function(){
+        rp.poly();
+        w.clearInterval( run );
+      } );
+    }
+  }
+
+
+  // commonjs
+  if( typeof exports !== "undefined" ){
+    exports.loadCSS = loadCSS;
+  }
+  else {
+    w.loadCSS = loadCSS;
+  }
+}( typeof global !== "undefined" ? global : this ) );</script><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js" defer></script><script src="/js/main.js?v=2018.7.9" defer></script><!-- fancybox--><link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'"><script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" defer></script><!-- busuanzi--><script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script><meta name="generator" content="Hexo 5.4.0"></head><body><section class="profile-close" id="cxo-profile"><div class="profile-avatar"><i class="fa fa-caret-left"></i><img src="/img/assets/avatar.jpg"></div><!--.profile-saying
+  i.fa.fa-comment
+  .saying--><div class="cxo-profile-inner"><div class="profile-name">Billy Shao</div><div class="profile-signature">for me</div><div class="read-progress"></div></div></section><header id="cxo-intro" style="height: 70vh;background-image: url(/img/intro/index-bg.png);"><nav id="cxo-intro-nav"><section><div class="intro-nav-title"><a href="/">FUNCIATY blog</a></div><div class="intro-nav-label-box"><a href="/">Home</a><a href="/about/">About</a><a href="/archives/">Archives</a><a href="/tags/">Tags</a></div><i class="fa fa-bars intro-nav-menu"><div class="intro-nav-drop"><a href="/">Home</a><a href="/about/">About</a><a href="/archives/">Archives</a><a href="/tags/">Tags</a></div></i><div class="clear"></div></section></nav><h1 class="post-title">硬核Linux发行版：记录一次完整的Archlinux安装过程</h1><div class="post-intros"><div class="post-intro-meta"><span class="post-intro-time"><i class="post-intro-calendar fa fa-calendar"></i><span>2021-02-25</span></span><span class="post-intro-tags"><a class="intro-tag fa fa-tag" href="javascript:void(0)" date-tags="Linux"> Linux</a></span></div></div></header><article class="cxo-up" id="cxo-content-outer"><section id="cxo-content-inner"><article class="article-entry" id="post"><p>参考文档，感谢原作者及Archlinux社区的贡献：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://wiki.archlinux.org/index.php/Arch_Linux">Arch Wiki-Arch Linux</a></li>
+<li><a target="_blank" rel="noopener" href="https://wiki.archlinux.org/index.php/Installation_guide">Arch Wiki-Installation Guide</a></li>
+<li><a target="_blank" rel="noopener" href="https://wiki.archlinux.org/index.php/Arch_boot_process#Boot_loader">Arch Wiki-Bootloader</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/cristianojason/article/details/80033330">CSDN-Win10上安装Archlinux(BIOS引导)</a></li>
+</ul>
+<h2 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h2><p>当我第一次了解到 Archlinux 这独具特色的发行版后，我的大脑是这样想的``( ￣ー￣)</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">这什么玩意，全程安装无图形界面，NT玩家才会去折腾这玩意。。。</span><br><span class="line">滚动更新有什么实际意义？只会导致系统稳定性下降吧。</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+
+<p>但似乎在很多社交网站或者技术论坛上，总会出现一群 Archlinux 的邪教徒的身影，他们高声大喊着：Archlinux, yes!<del>。行吧，于是我也抱着试试看的心理开始接触Arch。 *</del>两三天后，不出意外的 真香.~~*</p>
+<p>ArchWiki 是这样描述的：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Arch Linux is an independently developed, x86-64 general-purpose GNU/Linux distribution </span><br><span class="line">that strives to provide the latest stable versions of most software by following a </span><br><span class="line">rolling-release model. The default installation is a minimal base system, configured by </span><br><span class="line">the user to only add what is purposely required.</span><br></pre></td></tr></table></figure>
+
+<p>Q：Arch 凭什么能在众多 Linux 中展露锋芒？</p>
+<p>A：Archlinux 相较于其他发行版最大的特点其一是高度的可定制性，其二是激进的滚动更新（a rolling-release model）。Btw，像 OpenSUSE 和 Arch 的衍生 Manjaro 通样运用了滚动更新的包管理器。正是由于 Arch 这两大特点使他的安装上手门槛比较高，撇开 Hackintosh 黑苹果不算 <del>（职业选手禁止参加比赛！）</del>，Arch和 Fedora 可以算得上是操作系统安装难度两大巨头了。</p>
+<p><strong>Notice.</strong> 此博文将会记录一次完整的Archlinux安装过程，由于手头没有闲置的设备，将在Parallels Desktop虚拟机环境下进行。由于Pd中运行Linux模拟了BIOS传统引导的主板且无法修改，但事实上只要不是太老的机型，几乎所有x86平台都采用了UEFI引导方式，这会导致在安装过程中的部分步骤会与实际情况大相径庭（如使用cfdisk分区时的分区策略不同，分区表格式会有mbr+bios和guid+uefi的区分，使用grub bootloader引导系统时也会有较大差异）。综上，如果你想通过这篇文章来学习如何安装Archlinux的话，建议还是在网络上寻找更多的参考资料。我们应该从安装过程中学习到很多内容，而不是仅仅为了得到一个Linux系统而安装，此文只起抛砖引玉的作用。</p>
+<p>废话不多说，开始吧。&lt;(￣︶￣)↗[GO!]</p>
+<h2 id="从官网获取LiveCD"><a href="#从官网获取LiveCD" class="headerlink" title="从官网获取LiveCD"></a>从官网获取LiveCD</h2><p>进入 Archlinux 的下载页面，推荐下载 BitTorrent 种子文件至本地，再使用 Thunder 或 Motrix 等第三方磁力下载工具，或者你也可以选择下方国内的镜像源，如清华大学的 Tsinghua tuna，一直为 Linux 开源社区提供着优良的镜像服务。Arch 团队考虑也挺周全，为用户还提供了Docker 镜像，VM 虚拟机，Vagrant（一家主要提供在线Virtualbox虚拟技术服务的国外云平台）镜像等多个版本，这些内容会在 Downloads 页面呈现。</p>
+<p>下载好的iso文件可以使用如下命令来校验签名，前提是已安装 <a target="_blank" rel="noopener" href="https://wiki.archlinux.org/index.php/GnuPG">GnuPG</a>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gpg --keyserver-options auto-key-retrieve --verify archlinux-version-x86_64.iso.sig`</span><br></pre></td></tr></table></figure>
+<p>如果已经有一台配置好的 Arch，也可以用 pacman-key（其中version字段名请自行替换）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pacman-key -v archlinux-version-x86_64.iso.sig</span><br></pre></td></tr></table></figure>
+
+<p>至目前，最新版本是 archlinux-2021.02.01-x86_64.iso。镜像文件已经准备就绪，我们需要一个USB接口的U盘作为安装介质，可以采用 rufus，belenaEtcher 等工具将iso镜像文件烧录至U盘，开机引导U盘启动。具体步骤不做赘述。</p>
+<h2 id="安装系统"><a href="#安装系统" class="headerlink" title="安装系统"></a>安装系统</h2><p>如果是BIOS引导，会看到这样的界面，</p>
+<p><img src="/2021/02/25/Archlinux/01.png" alt="图01"></p>
+<p>待更新！</p>
+<p>//TODO</p>
+<h2 id="Outro"><a href="#Outro" class="headerlink" title="Outro"></a>Outro</h2><p>按照 Archlinux 官方的介绍，他们团队维护着Arch一直秉持着五个理念：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Simplicity， Modernity， Pragmatism， User Centrality， Versatility</span><br></pre></td></tr></table></figure>
+
+<p>简而言之：Keep It Simple, Stupid.</p>
+<p>保持简约，一目了然再好不过了。</p>
+<p>或许从中也能得到启发：生活固然不简单，即使这样也要简单的生活。</p>
+<p>Billy Shao,</p>
+<p>2/24/2021记.</p>
+</article><!-- lincense--><div class="license-wrapper"><p> <span>Author:  </span><a href="https://billy233.github.io">BillyShao</a></p><p> <span>Link:  </span><a href="https://billy233.github.io/2021/02/25/Archlinux/">https://billy233.github.io/2021/02/25/Archlinux/</a></p><p> <span>Copyright:  </span><span>All articles in this blog are licensed under <a rel="license noopener" target="_blank" href="https://creativecommons.org/licenses/by-nc-nd/3.0">CC BY-NC-SA 3.0</a> unless stating additionally.</span></p></div><div class="post-paginator"><a class="nextSlogan" href="/2021/02/24/hello-world/" title="Hello World"><span>NextPost ></span><br><span class="nextTitle">Hello World</span></a><div class="clear"></div></div><div id="comment"></div></section></article><footer id="cxo-footer-outer"><div id="cxo-footer-inner"><p class="footer-container"><span>Site by </span><a target="_blank" rel="noopener" href="http://hexo.io"><span>Hexo</span></a><span> | theme </span><a target="_blank" rel="noopener" href="https://github.com/Longlongyu/hexo-theme-Cxo"><span>Cxo</span></a></p><i class="fa fa-user"> </i><span id="busuanzi_value_site_uv"></span><span> | </span><i class="fa fa-eye"> </i><span id="busuanzi_value_site_pv"></span></div></footer><!-- catelog--><div class="toc-wrapper" style="top: 70vh;"><div class="toc-catalog"><i class="fa fa-list"> </i><span>CATALOG</span></div><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Intro"><span class="toc-number">1.</span> <span class="toc-text">Intro</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%8E%E5%AE%98%E7%BD%91%E8%8E%B7%E5%8F%96LiveCD"><span class="toc-number">2.</span> <span class="toc-text">从官网获取LiveCD</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E7%B3%BB%E7%BB%9F"><span class="toc-number">3.</span> <span class="toc-text">安装系统</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Outro"><span class="toc-number">4.</span> <span class="toc-text">Outro</span></a></li></ol></div><!-- top--><i class="fa fa-arrow-up close" id="go-up" aria-hidden="true"></i></body></html>
