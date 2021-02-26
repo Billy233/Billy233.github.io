@@ -124,6 +124,79 @@
 <p>至目前，最新版本是 archlinux-2021.02.01-x86_64.iso。镜像文件已经准备就绪，我们需要一个USB接口的U盘作为安装介质，可以采用 rufus，belenaEtcher 等工具将iso镜像文件烧录至U盘，开机引导U盘启动。具体步骤不做赘述。</p>
 <h2 id="安装系统"><a href="#安装系统" class="headerlink" title="安装系统"></a>安装系统</h2><p>如果是BIOS引导，会看到这样的界面，</p>
 <p><img src="/2021/02/25/Archlinux/01.png" alt="图01"></p>
+<p>选中第一项 Arch Linux install medium (x86_64, BIOS)，回车进入 LiveCD 系统，实际上就是你U盘里面封装好的 Archlinux，系统已经包含了安装所需要的编辑器，网络组建等。经过短暂的跑码系统会将你自动登入 root 根用户。</p>
+<p><img src="/2021/02/25/Archlinux/02.png" alt="图02"></p>
+<p>注意第四段的文字：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">For Wi-Fi, authenticate to the wireless network using the iwctl utility.</span><br><span class="line">Ethernet and Wi-Fi connections using DHCP should work automatically.</span><br></pre></td></tr></table></figure>
+
+<p>这段文字的意思是，如果使用 Wi-Fi 链接英特网请使用 iwctl 命令；有线连接即DHCP客户端动态分配IP 可以不做任何配置。如果是特殊网络环境，如PPPoe拨号或是校园网，建议使用手机共享USB网络，系统会作为 DHCP 网络来处理。</p>
+<p>检查一下网络联通性：</p>
+<p><img src="/2021/02/25/Archlinux/03.png" alt="图03"></p>
+<p>可选同步系统时间，采用常用的 NTP 协议（同不同步无所谓），：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">timedatectl set-ntp <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<p>使用 timedatectl status 检查。</p>
+<h3 id="磁盘分区"><a href="#磁盘分区" class="headerlink" title="磁盘分区"></a>磁盘分区</h3><p>BIOS with MBR</p>
+<table>
+<thead>
+<tr>
+<th align="left">Mount point</th>
+<th align="left">Partition</th>
+<th align="left">Partition type</th>
+<th align="left">Suggested size</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">[SWAP]</td>
+<td align="left">/dev/swap_partition</td>
+<td align="left">Linux swap</td>
+<td align="left">More than 512 MiB</td>
+</tr>
+<tr>
+<td align="left">/mnt</td>
+<td align="left">/dev/root_partition</td>
+<td align="left">Linux</td>
+<td align="left">Remainder of the device</td>
+</tr>
+</tbody></table>
+<p>UEFI with GPT</p>
+<table>
+<thead>
+<tr>
+<th align="left">Mount point</th>
+<th align="left">Partition</th>
+<th align="left">Partition type</th>
+<th align="left">Suggested size</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">/mnt/boot or /mnt/efi</td>
+<td align="left">/dev/efi_system_partition</td>
+<td align="left">EFI system partition</td>
+<td align="left">At least 260 MiB</td>
+</tr>
+<tr>
+<td align="left">[SWAP]</td>
+<td align="left">/dev/swap_partition</td>
+<td align="left">Linux swap</td>
+<td align="left">More than 512 MiB</td>
+</tr>
+<tr>
+<td align="left">/mnt</td>
+<td align="left">/dev/root_partition</td>
+<td align="left">Linux x86-64 root (/)</td>
+<td align="left">Remainder of the device</td>
+</tr>
+</tbody></table>
+<p>以上两个分区参考表格摘自Arch Wiki，这里使用第一个方案，但有些注意事项值得一提。</p>
+<ul>
+<li>swap 交换分区的作用：当系统物理 RAM 内存不够用时，系统会将 RAM 里的低访问频率的内存对象放置到 swap 分区中。故 swap 分区访问速度要远慢于物理内存。</li>
+<li>UEFI 引导的机型在磁盘中已经存在了 ESP 分区，Windows boot manager 引导文件会存放在该分区的 EFI 目录下。如果这样，就没必要新建 EFI 分区，直接将原有的直接挂载到 /mnt/boot 即可。</li>
+</ul>
+<p>使用 lsblk 命令查看磁盘情况，可以看到 loop0 和 sr0 是当前 LiveCD 的虚拟磁盘，我们要做的是在 12GB 的 sda IDE磁盘上安装 Arch：</p>
+<p><img src="/2021/02/25/Archlinux/04.png" alt="图04"></p>
+<p>磁盘工具可以选择 fdisk 或 cfdisk，这里以 cfdisk 作为演示。输入 cfdisk /dev/sda 他会提示选择分区表格式，mbr 即 dos。回车进入配置界面，按照表一做好 Linux 分区（ext4）和 swap 。如图：</p>
+<p><img src="/2021/02/25/Archlinux/05.png" alt="图05"></p>
 <p>待更新！</p>
 <p>//TODO</p>
 <h2 id="Outro"><a href="#Outro" class="headerlink" title="Outro"></a>Outro</h2><p>按照 Archlinux 官方的介绍，他们团队维护着Arch一直秉持着五个理念：</p>
@@ -134,4 +207,4 @@
 <p>或许从中也能得到启发：生活固然不简单，即使这样也要简单的生活。</p>
 <p>Billy Shao,</p>
 <p>2/24/2021记.</p>
-</article><!-- lincense--><div class="license-wrapper"><p> <span>Author:  </span><a href="https://billy233.github.io">BillyShao</a></p><p> <span>Link:  </span><a href="https://billy233.github.io/2021/02/25/Archlinux/">https://billy233.github.io/2021/02/25/Archlinux/</a></p><p> <span>Copyright:  </span><span>All articles in this blog are licensed under <a rel="license noopener" target="_blank" href="https://creativecommons.org/licenses/by-nc-nd/3.0">CC BY-NC-SA 3.0</a> unless stating additionally.</span></p></div><div class="post-paginator"><a class="nextSlogan" href="/2021/02/24/hello-world/" title="Hello World"><span>NextPost ></span><br><span class="nextTitle">Hello World</span></a><div class="clear"></div></div><div id="comment"></div></section></article><footer id="cxo-footer-outer"><div id="cxo-footer-inner"><p class="footer-container"><span>Site by </span><a target="_blank" rel="noopener" href="http://hexo.io"><span>Hexo</span></a><span> | theme </span><a target="_blank" rel="noopener" href="https://github.com/Longlongyu/hexo-theme-Cxo"><span>Cxo</span></a></p><i class="fa fa-user"> </i><span id="busuanzi_value_site_uv"></span><span> | </span><i class="fa fa-eye"> </i><span id="busuanzi_value_site_pv"></span></div></footer><!-- catelog--><div class="toc-wrapper" style="top: 70vh;"><div class="toc-catalog"><i class="fa fa-list"> </i><span>CATALOG</span></div><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Intro"><span class="toc-number">1.</span> <span class="toc-text">Intro</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%8E%E5%AE%98%E7%BD%91%E8%8E%B7%E5%8F%96LiveCD"><span class="toc-number">2.</span> <span class="toc-text">从官网获取LiveCD</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E7%B3%BB%E7%BB%9F"><span class="toc-number">3.</span> <span class="toc-text">安装系统</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Outro"><span class="toc-number">4.</span> <span class="toc-text">Outro</span></a></li></ol></div><!-- top--><i class="fa fa-arrow-up close" id="go-up" aria-hidden="true"></i></body></html>
+</article><!-- lincense--><div class="license-wrapper"><p> <span>Author:  </span><a href="https://billy233.github.io">BillyShao</a></p><p> <span>Link:  </span><a href="https://billy233.github.io/2021/02/25/Archlinux/">https://billy233.github.io/2021/02/25/Archlinux/</a></p><p> <span>Copyright:  </span><span>All articles in this blog are licensed under <a rel="license noopener" target="_blank" href="https://creativecommons.org/licenses/by-nc-nd/3.0">CC BY-NC-SA 3.0</a> unless stating additionally.</span></p></div><div class="post-paginator"><a class="nextSlogan" href="/2021/02/24/hello-world/" title="Hello World"><span>NextPost ></span><br><span class="nextTitle">Hello World</span></a><div class="clear"></div></div><div id="comment"></div></section></article><footer id="cxo-footer-outer"><div id="cxo-footer-inner"><p class="footer-container"><span>Site by </span><a target="_blank" rel="noopener" href="http://hexo.io"><span>Hexo</span></a><span> | theme </span><a target="_blank" rel="noopener" href="https://github.com/Longlongyu/hexo-theme-Cxo"><span>Cxo</span></a></p><i class="fa fa-user"> </i><span id="busuanzi_value_site_uv"></span><span> | </span><i class="fa fa-eye"> </i><span id="busuanzi_value_site_pv"></span></div></footer><!-- catelog--><div class="toc-wrapper" style="top: 70vh;"><div class="toc-catalog"><i class="fa fa-list"> </i><span>CATALOG</span></div><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Intro"><span class="toc-number">1.</span> <span class="toc-text">Intro</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%8E%E5%AE%98%E7%BD%91%E8%8E%B7%E5%8F%96LiveCD"><span class="toc-number">2.</span> <span class="toc-text">从官网获取LiveCD</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E7%B3%BB%E7%BB%9F"><span class="toc-number">3.</span> <span class="toc-text">安装系统</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A3%81%E7%9B%98%E5%88%86%E5%8C%BA"><span class="toc-number">3.1.</span> <span class="toc-text">磁盘分区</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Outro"><span class="toc-number">4.</span> <span class="toc-text">Outro</span></a></li></ol></div><!-- top--><i class="fa fa-arrow-up close" id="go-up" aria-hidden="true"></i></body></html>
