@@ -112,7 +112,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Arch Linux is an independently developed, x86-64 general-purpose GNU/Linux distribution </span><br><span class="line">that strives to provide the latest stable versions of most software by following a </span><br><span class="line">rolling-release model. The default installation is a minimal base system, configured by </span><br><span class="line">the user to only add what is purposely required.</span><br></pre></td></tr></table></figure>
 
 <p>Q：Arch 凭什么能在众多 Linux 中展露锋芒？</p>
-<p>A：Archlinux 相较于其他发行版最大的特点其一是高度的可定制性，其二是激进的滚动更新（a rolling-release model）。Btw，像 OpenSUSE 和 Arch 的衍生 Manjaro 通样运用了滚动更新的包管理器。正是由于 Arch 这两大特点使他的安装上手门槛比较高，撇开 Hackintosh 黑苹果不算 <del>（职业选手禁止参加比赛！）</del>，Arch和 Fedora 可以算得上是操作系统安装难度两大巨头了。</p>
+<p>A：Archlinux 相较于其他发行版最大的特点其一是高度的可定制性，其二是激进的滚动更新（a rolling-release model）。Btw，像 OpenSUSE 和 Arch 的衍生 Manjaro 同样使用了滚动更新的包管理器。正是由于 Arch 这两大特点使他的安装上手门槛比较高，撇开 Hackintosh 黑苹果不算 <del>（职业选手禁止参加比赛！）</del>，Arch和 Fedora 可以算得上是操作系统安装难度两大巨头了。</p>
 <p><strong>Notice.</strong> 此博文将会记录一次完整的Archlinux安装过程，由于手头没有闲置的设备，将在Parallels Desktop虚拟机环境下进行。由于Pd中运行Linux模拟了BIOS传统引导的主板且无法修改，但事实上只要不是太老的机型，几乎所有x86平台都采用了UEFI引导方式，这会导致在安装过程中的部分步骤会与实际情况大相径庭（如使用cfdisk分区时的分区策略不同，分区表格式会有mbr+bios和guid+uefi的区分，使用grub bootloader引导系统时也会有较大差异）。综上，如果你想通过这篇文章来学习如何安装Archlinux的话，建议还是在网络上寻找更多的参考资料。我们应该从安装过程中学习到很多内容，而不是仅仅为了得到一个Linux系统而安装，此文只起抛砖引玉的作用。</p>
 <p>废话不多说，开始吧。&lt;(￣︶￣)↗[GO!]</p>
 <h2 id="从官网获取LiveCD"><a href="#从官网获取LiveCD" class="headerlink" title="从官网获取LiveCD"></a>从官网获取LiveCD</h2><p>进入 Archlinux 的下载页面，推荐下载 BitTorrent 种子文件至本地，再使用 Thunder 或 Motrix 等第三方磁力下载工具，或者你也可以选择下方国内的镜像源，如清华大学的 Tsinghua tuna，一直为 Linux 开源社区提供着优良的镜像服务。Arch 团队考虑也挺周全，为用户还提供了Docker 镜像，VM 虚拟机，Vagrant（一家主要提供在线Virtualbox虚拟技术服务的国外云平台）镜像等多个版本，这些内容会在 Downloads 页面呈现。</p>
@@ -129,7 +129,7 @@
 <p>注意第四段的文字：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">For Wi-Fi, authenticate to the wireless network using the iwctl utility.</span><br><span class="line">Ethernet and Wi-Fi connections using DHCP should work automatically.</span><br></pre></td></tr></table></figure>
 
-<p>这段文字的意思是，如果使用 Wi-Fi 链接英特网请使用 iwctl 命令；有线连接即DHCP客户端动态分配IP 可以不做任何配置。如果是特殊网络环境，如PPPoe拨号或是校园网，建议使用手机共享USB网络，系统会作为 DHCP 网络来处理。</p>
+<p>这段文字的意思是，如果使用 Wi-Fi 链接英特网请使用 iwctl 命令；有线连接即DHCP客户端动态分配IP 可以不做任何配置。如果是特殊网络环境，如 PPPoe 拨号或是校园网，建议使用手机共享USB网络，系统会作为 DHCP 网络来处理。</p>
 <p>检查一下网络联通性：</p>
 <p><img src="/2021/02/25/Archlinux/03.png" alt="图03"></p>
 <p>可选同步系统时间，采用常用的 NTP 协议（同不同步无所谓），：</p>
@@ -188,7 +188,7 @@
 <td align="left">Remainder of the device</td>
 </tr>
 </tbody></table>
-<p>以上两个分区参考表格摘自Arch Wiki，这里使用第一个方案，但有些注意事项值得一提。</p>
+<p>以上两个分区参考表格摘自 Arch Wiki，这里使用第一个方案，但有些注意事项值得一提。</p>
 <ul>
 <li>swap 交换分区的作用：当系统物理 RAM 内存不够用时，系统会将 RAM 里的低访问频率的内存对象放置到 swap 分区中。故 swap 分区访问速度要远慢于物理内存。</li>
 <li>UEFI 引导的机型在磁盘中已经存在了 ESP 分区，Windows boot manager 引导文件会存放在该分区的 EFI 目录下。如果这样，就没必要新建 EFI 分区，直接将原有的直接挂载到 /mnt/boot 即可。</li>
