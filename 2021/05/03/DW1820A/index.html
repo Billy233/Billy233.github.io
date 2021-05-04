@@ -177,7 +177,7 @@
 <p>一共需要四个内核拓展：AirportBrcmFixup，BrcmBluetoothInjector，BrcmFirmwareData 和 BrcmPatchRAM3。其中第一个是 WIFI 驱动，后三是蓝牙驱动，将信息填入 config.plist -&gt; kernel -&gt; Add 路径中，但有两点要注意：</p>
 <ul>
 <li>操作前把 EFI 文件中其他的网卡驱动彻底删除，如 Airportitlwm</li>
-<li>拆包 AirportBrcmFixup 后你会发现集成了两卫星插件 AirPortBrcm4360 和 AirPortBrcmNIC_Injector，Big Sur 用户请移除 4360，否则会造成无法开机！（11.5.7及更低版本保留。苹果从 11 版本开始加载 IOFamily80211 和 AirPortBrcm4360 内核拓展，强制用 OC 加载会导致 Kernel Panic）</li>
+<li>拆包 AirportBrcmFixup 后你会发现集成了两卫星插件 AirPortBrcm4360 和 AirPortBrcmNIC_Injector，Big Sur 用户请移除 4360，否则会造成无法开机！（11.5.7及更低版本保留。苹果从 11 版本开始加载 IO80211Family 和 AirPortBrcm4360，强制用 OC 加载会导致 Kernel Panic）</li>
 </ul>
 <p>完成如下图：</p>
 <p><img src="/2021/05/03/DW1820A/02.png" alt="图02"></p>
