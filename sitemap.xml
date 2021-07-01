@@ -1,66 +1,66 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
-  <url>
-    <loc>https://billy233.github.io/about/index.html</loc>
+      
+      http://billy233.github.io/about/index.html
+      
+      2021-05-20T14:52:02.312Z
+      
+      
     
-    <lastmod>2021-05-20</lastmod>
+      
+      http://billy233.github.io//post/WhateverGreen.html
+      
+      2021-05-15T15:59:34.535Z
+      
+      
     
-  </url>
-  
-  <url>
-    <loc>https://billy233.github.io/post/WhateverGreen.html</loc>
+      
+      http://billy233.github.io//post/DW1820A.html
+      
+      2021-05-15T15:55:10.750Z
+      
+      
     
-    <lastmod>2021-05-15</lastmod>
+      
+      http://billy233.github.io//post/article01.html
+      
+      2021-05-04T15:22:39.437Z
+      
+      
     
-  </url>
-  
-  <url>
-    <loc>https://billy233.github.io/post/DW1820A.html</loc>
+      
+      http://billy233.github.io//post/cpp_HighAccuracy.html
+      
+      2021-05-04T15:19:42.867Z
+      
+      
     
-    <lastmod>2021-05-15</lastmod>
+      
+      http://billy233.github.io//post/Archlinux.html
+      
+      2021-05-04T15:15:56.363Z
+      
+      
     
-  </url>
-  
-  <url>
-    <loc>https://billy233.github.io/post/article01.html</loc>
+      
+      http://billy233.github.io/tags/index.html
+      
+      2021-02-24T04:28:25.014Z
+      
+      
     
-    <lastmod>2021-05-04</lastmod>
+      
+      http://billy233.github.io//post/hello-world.html
+      
+      2021-02-24T04:27:51.376Z
+      
+      
     
-  </url>
-  
-  <url>
-    <loc>https://billy233.github.io/post/cpp_HighAccuracy.html</loc>
-    
-    <lastmod>2021-05-04</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://billy233.github.io/post/Archlinux.html</loc>
-    
-    <lastmod>2021-05-04</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://billy233.github.io/tags/index.html</loc>
-    
-    <lastmod>2021-02-24</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://billy233.github.io/post/hello-world.html</loc>
-    
-    <lastmod>2021-02-24</lastmod>
-    
-  </url>
-  
 
   <url>
     <loc>https://billy233.github.io/</loc>
-    <lastmod>2021-06-26</lastmod>
+    <lastmod>2021-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -68,35 +68,35 @@
   
   <url>
     <loc>https://billy233.github.io/tags/Hackintosh/</loc>
-    <lastmod>2021-06-26</lastmod>
+    <lastmod>2021-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://billy233.github.io/tags/%E9%9A%8F%E7%AC%94/</loc>
-    <lastmod>2021-06-26</lastmod>
+    <lastmod>2021-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://billy233.github.io/tags/Data-struct-and-Alogrithm/</loc>
-    <lastmod>2021-06-26</lastmod>
+    <lastmod>2021-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://billy233.github.io/tags/Demo/</loc>
-    <lastmod>2021-06-26</lastmod>
+    <lastmod>2021-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://billy233.github.io/tags/Linux/</loc>
-    <lastmod>2021-06-26</lastmod>
+    <lastmod>2021-07-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
