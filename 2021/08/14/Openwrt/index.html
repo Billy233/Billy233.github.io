@@ -1,0 +1,1058 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="邵亦舟">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="虽然说是用 macOS 系统，但是像编译这种工作搭建个 Docker 环境其实是一劳永逸的。请创建 Ubuntu18.04LTS或20.4的容器，可以使用 MacPorts 进行安装，具体方法不再赘述。  Lean 大在他的源码仓库中明确支持不要使用 root 用户进行编译，按照他所讲的，我们创建一个普通用户，并在 &#x2F;etc&#x2F;sudoers 中给 root 权限。 1234567ro">
+<meta property="og:type" content="article">
+<meta property="og:title" content="macOS下编译Lean的Openwrt源码">
+<meta property="og:url" content="http://example.com/2021/08/14/Openwrt/index.html">
+<meta property="og:site_name" content="Funciaty">
+<meta property="og:description" content="虽然说是用 macOS 系统，但是像编译这种工作搭建个 Docker 环境其实是一劳永逸的。请创建 Ubuntu18.04LTS或20.4的容器，可以使用 MacPorts 进行安装，具体方法不再赘述。  Lean 大在他的源码仓库中明确支持不要使用 root 用户进行编译，按照他所讲的，我们创建一个普通用户，并在 &#x2F;etc&#x2F;sudoers 中给 root 权限。 1234567ro">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-08-13T16:00:00.000Z">
+<meta property="article:modified_time" content="2023-12-30T02:18:34.240Z">
+<meta property="article:author" content="邵亦舟">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>macOS下编译Lean的Openwrt源码 - Funciaty</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.1.1"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>Archives</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>Categories</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>Tags</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>About</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="macOS下编译Lean的Openwrt源码"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-08-14 00:00" pubdate>
+          August 14, 2021 am
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.6k words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          31 mins
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">macOS下编译Lean的Openwrt源码</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>虽然说是用 macOS 系统，但是像编译这种工作搭建个 Docker
+环境其实是一劳永逸的。请创建 Ubuntu18.04LTS或20.4的容器，可以使用
+MacPorts 进行安装，具体方法不再赘述。</p>
+<p><img
+src="https://funciaty.oss-cn-qingdao.aliyuncs.com/pic/Openwrt02.png" srcset="/img/loading.gif" lazyload /></p>
+<p>Lean 大在他的源码仓库中明确支持不要使用 root
+用户进行编译，按照他所讲的，我们创建一个普通用户，并在 /etc/sudoers 中给
+root 权限。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs bash">root&amp;&gt; useradd free<br>root&amp;&gt; passwd free<br><br>root&amp;&gt; <span class="hljs-built_in">mkdir</span> /home/free &amp;&amp; <span class="hljs-built_in">chown</span> -R free /home/free <br>root&amp;&gt; vim /etc/sudoers // 别忘了 wq!<br><br>root&amp;&gt; su free<br></code></pre></td></tr></table></figure>
+<p>我们现在已经以 free
+用户的身份在home目录，如果你没有一个稳定的上网环境还需要把 apt 的
+sourcelist 改成国内源。sudo apt update 之后安装编译所需的基本工具：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3 python2.7 unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler g++-multilib antlr3 gperf wget curl swig rsync<br></code></pre></td></tr></table></figure>
+<p><img
+src="https://funciaty.oss-cn-qingdao.aliyuncs.com/pic/Openwrt01.png" srcset="/img/loading.gif" lazyload /></p>
+<p>接着使用 git clone https://github.com/coolsnowwolf/lede.git 把源码
+clone 到本地，然后 cd lede 进入目录。</p>
+<p>默认的固件源码相对来说过于干净，没有乱七八糟的东西。如果想预编译其他的插件，如
+Passwall SSRplus 等等，就需要第三方 packages。推荐使用 github@kenzok8
+整理的 <a
+target="_blank" rel="noopener" href="https://github.com/kenzok8/openwrt-packages">openwrt-packages</a>，已经包括了以下插件和主题：</p>
+<ul>
+<li>luci-app-vssr ------------------vssr老竭力 即 helloworld</li>
+<li>luci-app-dnsfilter ------------------基于DNS的广告过滤</li>
+<li>luci-app-openclash ------------------openclash图形<br />
+</li>
+<li>luci-app-advancedsetting ------------------系统高级设置</li>
+<li>luci-app-serverchan ------------------Server酱 微信/Telegram
+推送的插件</li>
+<li>luci-theme-ifit
+------------------透明主题（适配18.06修复主机名错误）</li>
+<li>luci-theme-atmaterial ------------------atmaterial
+三合一主题（适配18.06）<br />
+</li>
+<li>luci-app-aliddns ------------------阿里云ddns</li>
+<li>luci-app-eqos ------------------依IP地址限速</li>
+<li>luci-app-gost ------------------隐蔽的https代理</li>
+<li>luci-app-adguardhome ------------------去广告</li>
+<li>luci-app-smartdns ------------------smartdns防污染</li>
+<li>luci-app-passwall ------------------Lienol大神</li>
+<li>luci-theme-argon_new ------------------二合蓝 紫主题</li>
+<li>luci-app-ssr-plus ------------------Lean大神</li>
+<li>luci-theme-opentomcat
+------------------修复主机名错误（适配18.06）<br />
+</li>
+<li>luci-theme-opentomato
+------------------修复主机名错误（适配18.06）</li>
+</ul>
+<p><img
+src="https://funciaty.oss-cn-qingdao.aliyuncs.com/pic/Openwrt03.png" srcset="/img/loading.gif" lazyload /></p>
+<p>如上图，编辑 lede/feeds.conf.default 文件，添加两行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">src-git kenzo https://github.com/kenzok8/openwrt-packages<br>src-git small https://github.com/kenzok8/small   // 这是 Passwall 插件所需的依赖，也可使用 Lienol passwall 替代<br></code></pre></td></tr></table></figure>
+<p>保存关闭后执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">./scripts/feeds update -a<br>./scripts/feeds install -a<br>make menuconfig<br></code></pre></td></tr></table></figure>
+<p>注意在第二步执行 install 命令时可能会出现一大堆有 ‘has a dependency
+on xxx, which does not exist’ 依赖缺失的报错，再输一次命令确保无误再进行
+config 配置。（'use -f to .....'可以忽略，这是由于 kenzo8 提供的
+packages 和 core 里的包出现重复，-f 参数会覆盖原有的 packages）</p>
+<p><img
+src="https://funciaty.oss-cn-qingdao.aliyuncs.com/pic/Openwrt04.png" srcset="/img/loading.gif" lazyload /></p>
+<p>输入 make menuconfig 后我们会看到这样一个图形界面：</p>
+<p><img
+src="https://funciaty.oss-cn-qingdao.aliyuncs.com/pic/Openwrt05.png" srcset="/img/loading.gif" lazyload /></p>
+<p>Target System 选择芯片 OEM，Subtarget 是具体型号，Target Profile
+机型。在终端底部有一个 Luci 选项卡，Luci
+所带来的高可定制性就是自己编译固件的乐趣所在。</p>
+<p>LuCi &gt; Themes 可选择主题 argon 系列的都比较美观。</p>
+<p><img
+src="https://funciaty.oss-cn-qingdao.aliyuncs.com/pic/Openwrt06.png" srcset="/img/loading.gif" lazyload /></p>
+<p>LuCi &gt; Applications 里勾选所需要的插件，具体应用摘自恩山论坛：</p>
+<p>—————————————————————————————–</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-accesscontrol
+#访问时间控制</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-adbyby-plus #广告屏蔽大师Plus
++</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-arpbind #IP/MAC绑定</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-autoreboot #支持计划重启</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-ddns #动态域名
+DNS（集成阿里DDNS客户端）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-filetransfer
+#文件传输（可web安装ipk包）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-firewall #添加防火墙</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-flowoffload #Turbo
+ACC网络加速（集成FLOW,BBR,NAT,DNS…</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-frpc #内网穿透 Frp</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-guest-wifi #WiFi访客网络</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-ipsec-virtual<strong>d
+#virtual</strong>服务器 IPSec</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-mwan3 #MWAN3负载均衡</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-mwan3helper #MWAN3分流助手</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-nlbwmon #网络带宽监视器</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-ramfree #释放内存</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-samba #网络共享（Samba）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-sqm
+#流量智能队列管理（QOS）</p>
+<p>——————————————————————————————-</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-乳酸菌饮料-plus
+#乳酸菌饮料低调上网Plus+</p>
+<p>luci-app-乳酸菌饮料-plus —&gt; Include s-s New Versiong #新SS代理</p>
+<p>luci-app-乳酸菌饮料-plus —&gt; Include s-s Simple-obfs Plugin
+#simple-obfs简单混淆工具 *</p>
+<p>luci-app-乳酸菌饮料-plus —&gt; Include s-s v贰瑞 Plugin #SS v贰瑞插件
+*</p>
+<p>luci-app-乳酸菌饮料-plus —&gt; Include v贰瑞 #v贰瑞代理</p>
+<p>luci-app-乳酸菌饮料-plus —&gt; Include Trojan #Trojan代理</p>
+<p>luci-app-乳酸菌饮料-plus —&gt; Include red—socks2 #red—socks2代理
+*</p>
+<pre><code class="hljs">luci-app-乳酸菌饮料-plus —&gt; Include Kcptun  #Kcptun加速</code></pre>
+<p>luci-app-乳酸菌饮料-plus —&gt; Include 违禁软件 Server
+#乳酸菌饮料服务器</p>
+<p>——————————————————————————————-</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-syncdial
+#多拨虚拟网卡（原macvlan）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-unblockmusic
+#解锁网易云灰色歌曲3合1新版本</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-upnp
+#通用即插即用UPnP（端口自动转发）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-vlmcsd #KMS服务器设置</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-vsftpd #FTP服务器</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-wifischedule #WiFi 计划</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-wirele违禁软件egdb
+#WiFi无线</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-wol #WOL网络唤醒</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-wrtbwmon #实时流量监测</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-xlnetacc #迅雷快鸟</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-zerotier #ZeroTier内网穿透</p>
+<p>Extra packages —&gt; ipv6helper #支持 ipv6</p>
+<p>Utilities —&gt; open-vm-tools #打开适用于VMware的VM Tools</p>
+<p>以下是全部： 注：应用后面标记 “ * ” 为最近新添加</p>
+<p>—————————————————————————————–</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-accesscontrol
+#访问时间控制</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-acme
+#ACME自动化证书管理环境</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-adblock #ADB广告过滤</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-adbyby-plus #广告屏蔽大师Plus
++</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-adbyby
+#广告过滤大师（已弃）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-adkill #广告过滤（已弃）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-advanced-reboot
+#Linksys高级重启</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-ahcp #支持AHCPd</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-aliddns
+#阿里DDNS客户端（已弃，集成至ddns）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-amule #aMule下载工具</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-aria2 # Aria2下载工具</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-arpbind #IP/MAC绑定</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-asterisk
+#支持Asterisk电话服务器</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-attendedsysupgrade
+#固件更新升级相关</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-autoreboot #支持计划重启</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-baidupcs-web #百度网盘管理</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-bcp38
+#BCP38网络入口过滤（不确定）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-bird1-ipv4
+#对Bird1-ipv4的支持</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-bird1-ipv6
+#对Bird1-ipv6的支持</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-bird4 #Bird
+4（未知）（已弃）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-bird6 #Bird
+6（未知）（已弃）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-bmx6 #BMX6路由协议</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-bmx7 #BMX7路由协议</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-caldav #联系人（已弃）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-cifsd #网络共享CIFS/SMB服务器
+*</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-cjdns #加密IPV6网络相关</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-clamav #ClamAV杀毒软件</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-commands #Shell命令模块</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-cshark #CloudShark捕获工具</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-ddns #动态域名
+DNS（集成阿里DDNS客户端）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-diag-core #core诊断工具</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-dnscrypt-proxy
+#DNSCrypt解决DNS污染</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-dnsforwarder
+#DNSForwarder防DNS污染</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-dnspod
+#DNSPod动态域名解析（已弃）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-dockerman #Docker容器 *</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-dump1090
+#民航无线频率（不确定）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-dynapoint
+#DynaPoint（未知）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-e2guardian #Web内容过滤器</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-familycloud #家庭云盘</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-filetransfer
+#文件传输（可web安装ipk包）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-firewall #添加防火墙</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-flowoffload #Turbo
+ACC网络加速（集成FLOW,BBR,NAT,DNS…</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-freifunk-diagnostics
+#freifunk组件 诊断（未知）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-freifunk-policyrouting
+#freifunk组件 策略路由（未知）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-freifunk-widgets #freifunk组件
+索引（未知）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-frpc #内网穿透 Frp</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-fwknopd #Firewall Knock
+Operator服务器</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-guest-wifi #WiFi访客网络</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-gfwlist
+#GFW域名列表（已弃）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-haproxy-tcp
+#HAProxy负载均衡-TCP</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-hd-idle #硬盘休眠</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-hnet #Homenet
+Status家庭网络控制协议</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-ipsec-virtual<strong>d
+#virtual</strong>服务器 IPSec</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-kodexplorer
+#KOD可道云私人网盘</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-kooldns #virtual**服务器
+ddns替代方案（已弃）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-koolproxy
+#KP去广告（已弃）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-lxc #LXC容器管理</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-meshwizard #网络设置向导</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-minidlna #完全兼容DLNA /
+UPnP-AV客户端的服务器软件</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-mjpg-streamer
+#兼容Linux-UVC的摄像头程序</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-mtwifi #MTWiFi驱动的支持</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-mmc-over-gpio
+#添加SD卡操作界面（已弃）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-multiwan
+#多拨虚拟网卡（已弃，移至syncdial）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-mwan #MWAN负载均衡（已弃）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-mwan3 #MWAN3负载均衡</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-mwan3helper #MWAN3分流助手</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-n2n_v2 #N2N内网穿透 N2N v2
+virtual**服务</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-netdata
+#Netdata实时监控（图表）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-nft-qos #QOS流控
+Nftables版</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-ngrokc #Ngrok
+内网穿透（已弃）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-nlbwmon #网络带宽监视器</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-noddos #NodDOS Clients
+阻止DDoS攻击</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-nps #内网穿透nps *</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-ntpc #NTP时间同步服务器</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-ocserv #OpenConnect
+virtual**服务</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-olsr #OLSR配置和状态模块</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-olsr-services #OLSR服务器</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-olsr-viz #OLSR可视化</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-openvirtual**
+#Openvirtual**客户端</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-openvirtual<strong>-server
+#易于使用的Openvirtual</strong>服务器 Web-UI</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-oscam #OSCAM服务器（已弃）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-p910nd #打印服务器模块</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-pagekitec
+#Pagekite内网穿透客户端</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-polipo
+#Polipo代理(是一个小型且快速的网页缓存代理)</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-pppoe-relay #PPPoE NAT穿透
+点对点协议（PPP）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-p p t p-server
+#virtual**服务器 p p t p（已弃）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-privoxy
+#Privoxy网络代理(带过滤无缓存)</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-qbittorrent
+#BT下载工具（qBittorrent）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-qos #流量服务质量(QoS)流控</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-radicale
+#CalDAV/CardDAV同步工具</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-ramfree #释放内存</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-rp-pppoe-server #Roaring
+Penguin PPPoE Server 服务器</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-samba #网络共享（Samba）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-samba4 #网络共享（Samba4）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-sfe #Turbo
+ACC网络加速（flowoffload二选一）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-s-s #SS低调上网（已弃）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-s-s-libes #SS-libev服务端</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-shairplay #支持AirPlay功能</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-siitwizard #SIIT配置向导
+SIIT-Wizzard</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-simple-adblock
+#简单的广告拦截</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-smartdns
+#SmartDNS本地服务器（已弃）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-softethervirtual** #SoftEther
+virtual**服务器 NAT穿透 *</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-splash
+#Client-Splash是无线MESH网络的一个热点认证系统</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-sqm
+#流量智能队列管理（QOS）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-squid #Squid代理服务器</p>
+<p>——————————————————————————————————-</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-乳酸菌饮料-plus
+#乳酸菌饮料低调上网Plus+</p>
+<p>luci-app-乳酸菌饮料-plus —&gt; Include s-s New Version #新SS代理</p>
+<p>luci-app-乳酸菌饮料-plus —&gt; Include s-s Simple-obfs Plugin
+#simple-obfs简单混淆工具 *</p>
+<p>luci-app-乳酸菌饮料-plus —&gt; Include s-s v贰瑞 Plugin #SS v贰瑞插件
+*</p>
+<p>luci-app-乳酸菌饮料-plus —&gt; Include v贰瑞 #v贰瑞代理</p>
+<p>luci-app-乳酸菌饮料-plus —&gt; Include Trojan #Trojan代理</p>
+<p>luci-app-乳酸菌饮料-plus —&gt; Include red—socks2 #red—socks2代理
+*</p>
+<p>luci-app-乳酸菌饮料-plus —&gt; Include Kcptun #Kcptun加速</p>
+<p>luci-app-乳酸菌饮料-plus —&gt; Include 违禁软件 Server
+#乳酸菌饮料服务器</p>
+<p>luci-app-乳酸菌饮料-plus —&gt; Include DNS2SOCKS
+#DNS服务器（已弃）</p>
+<p>luci-app-乳酸菌饮料-plus —&gt; Include 违禁软件 Socks and
+Tunnel（已弃）</p>
+<p>luci-app-乳酸菌饮料-plus —&gt; Include Socks Server
+#socks代理服务器（已弃）</p>
+<p>——————————————————————————————————-</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-乳酸菌饮料-pro
+#乳酸菌饮料-Pro（已弃）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-乳酸菌饮料server-python
+#违禁软件 Python服务器</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-statistics #流量监控工具</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-syncdial
+#多拨虚拟网卡（原macvlan）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-tinyproxy #Tinyproxy是
+HTTP(S)代理服务器</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-transmission #BT下载工具</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-travelmate #旅行路由器</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-ttyd #网页终端命令行</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-udpxy #udpxy做组播服务器</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-uhttpd #uHTTPd Web服务器</p>
+<p>——————————————————————————————————-</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-unblockmusic
+#解锁网易云灰色歌曲3合1新版本</p>
+<p>UnblockNeteaseMusic Golang Version #Golang版本 *</p>
+<p>UnblockNeteaseMusic NodeJS Version #NodeJS版本 *</p>
+<p>——————————————————————————————————-</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-unblockneteasemusic-go
+#解除网易云音乐（合并）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-unblockneteasemusic-mini
+#解除网易云音乐（合并）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-unbound #Unbound DNS解析器</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-upnp
+#通用即插即用UPnP（端口自动转发）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-usb-printer #USB
+打印服务器</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-v贰瑞-server #v贰瑞 服务器</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-v贰瑞-pro
+#v贰瑞透明代理（已弃，集成乳酸菌饮料）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-verysync #微力同步 *</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-vlmcsd #KMS服务器设置</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-vnstat
+#vnStat网络监控（图表）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-virtual<strong>bypass
+#virtual</strong> BypassWebUI 绕过virtual**设置</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-vsftpd #FTP服务器</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-watchcat
+#断网检测功能与定时重启</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-webadmin #Web管理页面设置</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-webshell
+#网页命令行终端（已弃）</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-wifischedule #WiFi 计划</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-wireguard #virtual**服务器
+WireGuard状态</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-wirele违禁软件egdb
+#WiFi无线</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-wol #WOL网络唤醒</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-wrtbwmon #实时流量监测</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-xlnetacc #迅雷快鸟</p>
+<p>LuCI —&gt; Applications —&gt; luci-app-zerotier #ZeroTier内网穿透</p>
+<p>—————————————————————————————————</p>
+<p>需要注意的是配置科学上网工具时，XRay 是向下兼容 V2ray
+的。并且经过我的测试，勾选了 V2Ray 可能会导致 XRay 编译时出现错误。</p>
+<p><img
+src="https://funciaty.oss-cn-qingdao.aliyuncs.com/pic/Openwrt07.png" srcset="/img/loading.gif" lazyload /></p>
+<p>双击两下 Esc 退回上一级，并选择 Yes
+保存文件。下载编译所需的第三方库（每次更改配置文件时都需执行一次）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">make -j8 download V=s<br></code></pre></td></tr></table></figure>
+<p>这里千万不要只执行一遍就直接编译了，必会报错！！由于玄学问题第一次下载哪怕用的是海外
+VPS 都会出现 404 Download
+failed，所以至少重复两至三遍。方便排错可以直接搜索 'failed'
+关键字进行过滤，sha256 签名验证失败的文件可以忽略，只要在 lede/dl
+目录能找到对应报错的文件就可以了。</p>
+<p><img
+src="https://funciaty.oss-cn-qingdao.aliyuncs.com/pic/Openwrt08.png" srcset="/img/loading.gif" lazyload /></p>
+<p>最后开始编译，本机大约等待了 6h：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">make -j1 V=s<br></code></pre></td></tr></table></figure>
+<p>我在编译到最后一步打包时，出现了 'error:
+ext4_allocate_best_fit_partial: failed to allocate xxxx blocks, out of
+space?' error，原因很简单：默认的磁盘大小不够。只需重新 make
+menuconfig，找到 Target Images &gt; Root filesystem partition size(in
+MB)，根据所编译的插件数量酌情扩容。</p>
+<p>Billy Shao,</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>macOS下编译Lean的Openwrt源码</div>
+      <div>http://example.com/2021/08/14/Openwrt/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>邵亦舟</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>August 14, 2021</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>Licensed under</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/08/14/DW1820A/" title="赶紧上车：Big Sur更换DW1820A网卡">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">赶紧上车：Big Sur更换DW1820A网卡</span>
+                        <span class="visible-mobile">Previous</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/05/15/WhateverGreen/" title="WhateverGreen核显驱动详解">
+                        <span class="hidden-mobile">WhateverGreen核显驱动详解</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>Table of Contents</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>

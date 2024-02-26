@@ -1,0 +1,749 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="邵亦舟">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="一.基础知识 1.高斯噪声：噪声满足正态分布2.宏观意义：滤波即加权 理想状态： 信号x1 + 噪声x0LPF(Low pass filter):低电平x1 高电平x0卡尔曼滤波：估计值x（权重） 观测值x（权重） -&gt; 修正3.协方差 ：描述两个随机变量的相关性坐标原点为平均值\((\bar{x},\, \bar{y})\)，每个样本点与原点围成的矩形面积之和可以描述相关性（红色">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kalman滤波算法">
+<meta property="og:url" content="http://example.com/2023/11/27/KalmanFilter/index.html">
+<meta property="og:site_name" content="Funciaty">
+<meta property="og:description" content="一.基础知识 1.高斯噪声：噪声满足正态分布2.宏观意义：滤波即加权 理想状态： 信号x1 + 噪声x0LPF(Low pass filter):低电平x1 高电平x0卡尔曼滤波：估计值x（权重） 观测值x（权重） -&gt; 修正3.协方差 ：描述两个随机变量的相关性坐标原点为平均值\((\bar{x},\, \bar{y})\)，每个样本点与原点围成的矩形面积之和可以描述相关性（红色">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-11-26T16:00:00.000Z">
+<meta property="article:modified_time" content="2023-12-30T13:48:40.200Z">
+<meta property="article:author" content="邵亦舟">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Kalman滤波算法 - Funciaty</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.1.1"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>Archives</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>Categories</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>Tags</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>About</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Kalman滤波算法"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-11-27 00:00" pubdate>
+          November 27, 2023 am
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.4k words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          20 mins
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Kalman滤波算法</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="一.基础知识">一.基础知识</h2>
+1.高斯噪声：噪声满足正态分布<br />2.宏观意义：滤波即加权<br />
+理想状态： 信号x1 + 噪声x0<br />LPF(Low pass filter):低电平x1
+高电平x0<br />卡尔曼滤波：估计值x（权重） 观测值x（权重） -&gt;
+修正<br />3.协方差 ：描述两个随机变量的相关性<br /><img
+src="https://funciaty.oss-cn-qingdao.aliyuncs.com/pic/kalmanimage.png" srcset="/img/loading.gif" lazyload
+alt="image.png" /><br /><img
+src="https://funciaty.oss-cn-qingdao.aliyuncs.com/pic/kalmanimage%20(1).png" srcset="/img/loading.gif" lazyload
+alt="image.png" /><br />坐标原点为平均值<span
+class="math inline">\((\bar{x},\,
+\bar{y})\)</span>，每个样本点与原点围成的矩形面积之和可以描述相关性（红色为正，蓝色为负）：<br />公式表示为：<br />
+<center>
+<span class="math inline">\(\sum(x_i - \bar{x})(y_i -
+\bar{y})\begin{cases} &gt;0，正相关 \\= 0, 不相关 \\&lt;0，负相关
+\end{cases}\)</span>
+</center>
+常用加权形式（概率为统计经验）：<br />
+<center>
+<span class="math inline">\(\sum p_i(x_i - \mu_X)(y_i - \mu_Y)\)</span>
+</center>
+<br />
+<center>
+<span class="math inline">\(Cov(X, Y) = E[(X-\mu_X)(Y-\mu_Y)]\)</span>
+</center>
+<br />4.协方差矩阵<br />经过去中心化处理后的m个样本点，每个样本包含3个数据
+<span
+class="math inline">\(a_i\,b_i\,c_i\)</span>，每组样本的数据列向量的形式保存在矩阵X中：<br />
+<center>
+<span class="math inline">\(X=\begin{bmatrix}
+a_1\,a_2\,a_3\,......\,a_m\\b_1\,b_2\,b_3\,......\,b_m\\c_1\,c_2\,c_3\,......\,c_m
+\end{bmatrix}\)</span>
+</center>
+<br />
+<center>
+<span
+class="math inline">\(P=\frac{1}{m}XX^T=\frac{1}{m}\begin{bmatrix}a_1\,a_2\,......\,a_m\\b_1\,b_2\,......\,b_m\\c_1\,c_2\,......\,c_m
+\end{bmatrix}\begin{bmatrix}a_1\,b_1\,c_1\\a_2\,b_2\,c_2\\......\\a_m\,b_m\,c_m\end{bmatrix}=\begin{bmatrix}
+Cov(a,\,a)\,\,\,\,
+Cov(a,\,b)\,\,\,\,Cov(a,\,c)\\Cov(b,\,a)\,\,\,\,Cov(b,\,b)\,\,\,\,Cov(b,\,c)\\Cov(c,\,a)\,\,\,\,Cov(c,\,b)\,\,\,\,Cov(c,\,
+c) \end{bmatrix}\)</span>
+</center>
+<p><br />可见，协方差矩阵由方差和协方差组成。</p>
+<h2 id="二.进阶">二.进阶</h2>
+1.状态空间表达式<br />状态方程<br />
+<center>
+<span class="math inline">\(x_k = Ax_{k-1} + Bu_k + w_k\)</span>
+</center>
+<br />xk当前状态当前值 x_k-1上个时刻给状态的值 u输入
+wk过程噪声<br />A状态转移矩阵 B控制矩阵 <br />eg.小车匀速直线运动 <span
+class="math inline">\(x_k = x_{k - 1} + v dt +
+w_k\)</span><br />观测方程<br />
+<center>
+<span class="math inline">\(y_k = Cx_k + v_k\)</span>
+</center>
+<br />2.参数分析<br />（1）过程噪声<span
+class="math inline">\(w_k服从N(0, Q_k)\)</span><br /> 观测噪声<span
+class="math inline">\(v_k服从N(0,
+R_k)\)</span><br />称为高斯白噪声<br /> (2) 方差 一维方差delta
+二维协方差<br />当前先验估计值 + 观测值 ————&gt; 当前最优估计值
+<br />3.预测阶段<br />预测t时刻先验估计：<br />
+<center>
+<span class="math inline">\(\hat{x_t^-}=F\hat{x}_{t-1}+Bu_{t-1}\)</span>
+</center>
+<br />t时刻P协方差预测：<br />
+<center>
+<span class="math inline">\(P_t^- = FP_{t-1}F^T + Q\)</span>
+</center>
+<br />4.状态更新阶段<br />（1）<br />
+<center>
+<span class="math inline">\(\hat{x_t} = \hat{x_t^-}+K_t(z_t -
+H\hat{x_t^-})\)</span>
+</center>
+<br />xt为<strong>最终滤波结果</strong>，
+xt-为先验估计，Kt卡尔曼增益，zt观测值<br />（2）更新卡尔曼增益<br />
+<center>
+<span class="math inline">\(K_t=P_t^-H^T(HP^-_tH^T + R)^{-1}\)</span>
+</center>
+<br />P为先验协方差R观察量协方差矩阵（观测噪声）。<br />(3)<br />
+<center>
+<span class="math inline">\(P_t = (I - K_tH)P_t^-\)</span>
+</center>
+<h2 id="三.mpu6050卡尔曼滤波姿态解算">三.MPU6050卡尔曼滤波姿态解算</h2>
+<p>注：无法对yaw轴进行卡尔曼算法，需要9轴IMU借助磁力计进行解算
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;kalman_cal.h&quot;</span></span><br><br><span class="hljs-comment">//卡尔曼解算法库</span><br><br><span class="hljs-type">short</span> aacx,aacy,aacz;		<span class="hljs-comment">//加速度传感器原始数据 </span><br><span class="hljs-type">short</span> gyrox,gyroy,gyroz;	<span class="hljs-comment">//陀螺仪原始数据 </span><br><span class="hljs-type">short</span> temperature;			<span class="hljs-comment">//陀螺仪温度数据</span><br><span class="hljs-type">float</span> accel_x;	     		<span class="hljs-comment">//X轴加速度值</span><br><span class="hljs-type">float</span> accel_y;	    		<span class="hljs-comment">//Y轴加速度值</span><br><span class="hljs-type">float</span> accel_z;	     		<span class="hljs-comment">//Z轴加速度值</span><br><span class="hljs-type">float</span> gyro_x;						<span class="hljs-comment">//X轴陀螺仪角速度数据</span><br><span class="hljs-type">float</span> gyro_y;        		<span class="hljs-comment">//Y轴陀螺仪角速度数据</span><br><span class="hljs-type">float</span> gyro_z;		 				<span class="hljs-comment">//Z轴陀螺仪角速度数据</span><br><span class="hljs-type">float</span> yaw_raw;  		 		<span class="hljs-comment">//航线角yaw原始数据</span><br><span class="hljs-type">float</span> yaw_kalman; 	 		<span class="hljs-comment">//yaw滤波后数据</span><br><span class="hljs-type">float</span> pitch_raw;  		 	<span class="hljs-comment">//俯仰角pitch原始数据</span><br><span class="hljs-type">float</span> pitch_kalman; 	 	<span class="hljs-comment">//pitch滤波后数据</span><br><span class="hljs-type">float</span> roll_raw;  		   	<span class="hljs-comment">//横滚角roll原始数据</span><br><span class="hljs-type">float</span> roll_kalman; 		 	<span class="hljs-comment">//roll滤波后数据					</span><br><br><span class="hljs-type">rt_int16_t</span> temp;        <span class="hljs-comment">//温度</span><br><span class="hljs-type">rt_int16_t</span> gx,gy,gz;    <span class="hljs-comment">//三轴加速度</span><br><span class="hljs-type">rt_int16_t</span> ax,ay,az;    <span class="hljs-comment">//三轴角速度</span><br><span class="hljs-comment">//判断数据接收是否正常</span><br><span class="hljs-type">rt_err_t</span> temp_ret;<br><span class="hljs-type">rt_err_t</span> a_ret;<br><span class="hljs-type">rt_err_t</span> g_ret;<br><br><span class="hljs-comment">//陀螺仪数据计算</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">Angle_Cal</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>	<span class="hljs-comment">//1. 原始数据获取</span><br>	<span class="hljs-type">float</span> accx,accy,accz;<span class="hljs-comment">//三方向角加速度值</span><br>	<span class="hljs-comment">//获取温度</span><br>  temp_ret = mpu6050_temperature_get(&amp;temp);    <br>	<span class="hljs-comment">//获取加速度传感器数据			</span><br>  a_ret = mpu6050_accelerometer_get(&amp;ax, &amp;ay, &amp;az);<br>  <span class="hljs-comment">//获得陀螺仪数据</span><br>	g_ret = mpu6050_gyroscope_get(&amp;gx, &amp;gy, &amp;gz);<br>	accel_x = ax;<span class="hljs-comment">//x轴加速度值暂存</span><br>	accel_y = ay;<span class="hljs-comment">//y轴加速度值暂存</span><br>	accel_z = az;<span class="hljs-comment">//z轴加速度值暂存</span><br>	gyro_x  = gx;<span class="hljs-comment">//x轴陀螺仪值暂存</span><br>	gyro_y  = gy;<span class="hljs-comment">//y轴陀螺仪值暂存</span><br>	gyro_z  = gz;<span class="hljs-comment">//z轴陀螺仪值暂存</span><br>	<br>	<span class="hljs-comment">//2.角加速度原始值处理过程	</span><br>	<span class="hljs-comment">//加速度传感器配置寄存器0X1C内写入0x01,设置范围为±2g。换算关系：2^16/4 = 16384LSB/g</span><br>	<span class="hljs-keyword">if</span>(accel_x&lt;<span class="hljs-number">32764</span>) accx=accel_x/<span class="hljs-number">16384.0</span>;<span class="hljs-comment">//计算x轴加速度</span><br>	<span class="hljs-keyword">else</span>              accx=<span class="hljs-number">1</span>-(accel_x<span class="hljs-number">-49152</span>)/<span class="hljs-number">16384.0</span>;<br>	<span class="hljs-keyword">if</span>(accel_y&lt;<span class="hljs-number">32764</span>) accy=accel_y/<span class="hljs-number">16384.0</span>;<span class="hljs-comment">//计算y轴加速度</span><br>	<span class="hljs-keyword">else</span>              accy=<span class="hljs-number">1</span>-(accel_y<span class="hljs-number">-49152</span>)/<span class="hljs-number">16384.0</span>;<br>	<span class="hljs-keyword">if</span>(accel_z&lt;<span class="hljs-number">32764</span>) accz=accel_z/<span class="hljs-number">16384.0</span>;<span class="hljs-comment">//计算z轴加速度</span><br>	<span class="hljs-keyword">else</span>              accz=(accel_z<span class="hljs-number">-49152</span>)/<span class="hljs-number">16384.0</span>;<br>	<span class="hljs-comment">//加速度反正切公式计算三个轴和水平面坐标系之间的夹角</span><br>	pitch_raw=(<span class="hljs-built_in">atan</span>(accy/accz))*<span class="hljs-number">180</span>/<span class="hljs-number">3.14</span>;<br>	roll_raw=(<span class="hljs-built_in">atan</span>(accx/accz))*<span class="hljs-number">180</span>/<span class="hljs-number">3.14</span>;<br>	<span class="hljs-comment">//判断计算后角度的正负号											</span><br>	<span class="hljs-keyword">if</span>(accel_x&lt;<span class="hljs-number">32764</span>) roll_raw = +roll_raw;<br>	<span class="hljs-keyword">if</span>(accel_x&gt;<span class="hljs-number">32764</span>) roll_raw = -roll_raw;<br>	<span class="hljs-keyword">if</span>(accel_y&lt;<span class="hljs-number">32764</span>) pitch_raw = +pitch_raw;<br>	<span class="hljs-keyword">if</span>(accel_y&gt;<span class="hljs-number">32764</span>) pitch_raw = -pitch_raw;<br>	<br>	<span class="hljs-comment">//3.角速度原始值处理过程</span><br>	<span class="hljs-comment">//陀螺仪配置寄存器0X1B内写入0x18，设置范围为±2000deg/s。换算关系：2^16/4000=16.4LSB/(°/S)</span><br>	<span class="hljs-comment">////计算角速度</span><br>	<span class="hljs-keyword">if</span>(gyro_x&lt;<span class="hljs-number">32768</span>) gyro_x=-(gyro_x/<span class="hljs-number">16.4</span>);<br>	<span class="hljs-keyword">if</span>(gyro_x&gt;<span class="hljs-number">32768</span>) gyro_x=+(<span class="hljs-number">65535</span>-gyro_x)/<span class="hljs-number">16.4</span>;<br>	<span class="hljs-keyword">if</span>(gyro_y&lt;<span class="hljs-number">32768</span>) gyro_y=-(gyro_y/<span class="hljs-number">16.4</span>);<br>	<span class="hljs-keyword">if</span>(gyro_y&gt;<span class="hljs-number">32768</span>) gyro_y=+(<span class="hljs-number">65535</span>-gyro_y)/<span class="hljs-number">16.4</span>;<br>	<span class="hljs-keyword">if</span>(gyro_z&lt;<span class="hljs-number">32768</span>) gyro_z=-(gyro_z/<span class="hljs-number">16.4</span>);<br>	<span class="hljs-keyword">if</span>(gyro_z&gt;<span class="hljs-number">32768</span>) gyro_z=+(<span class="hljs-number">65535</span>-gyro_z)/<span class="hljs-number">16.4</span>;<br><br>	<span class="hljs-comment">//4.调用卡尔曼函数</span><br>	Kalman_Cal_Pitch(pitch_raw,gyro_x);  <span class="hljs-comment">//卡尔曼滤波计算X倾角</span><br>	Kalman_Cal_Roll(roll_raw,gyro_y);  <span class="hljs-comment">//卡尔曼滤波计算Y倾角															  </span><br><br><br>&#125;<br> <br><span class="hljs-comment">//卡尔曼参数		</span><br><span class="hljs-type">static</span> <span class="hljs-type">float</span> Q_angle = <span class="hljs-number">0.001</span>;		<span class="hljs-comment">//角度数据置信度，角度噪声的协方差</span><br><span class="hljs-type">static</span> <span class="hljs-type">float</span> Q_gyro  = <span class="hljs-number">0.003</span>;		<span class="hljs-comment">//角速度数据置信度，角速度噪声的协方差  </span><br><span class="hljs-type">static</span> <span class="hljs-type">float</span> R_angle = <span class="hljs-number">0.5</span>;		<span class="hljs-comment">//加速度计测量噪声的协方差</span><br><span class="hljs-type">static</span> <span class="hljs-type">float</span> dt      = <span class="hljs-number">0.01</span>;		<span class="hljs-comment">//采样周期即计算任务周期10ms</span><br><br><span class="hljs-type">void</span> <span class="hljs-title function_">Kalman_Cal_Pitch</span><span class="hljs-params">(<span class="hljs-type">float</span> acc,<span class="hljs-type">float</span> gyro)</span> <span class="hljs-comment">//卡尔曼滤波pitch轴计算		</span><br>&#123;<br>	<span class="hljs-type">static</span> <span class="hljs-type">float</span> Q_bias;	<span class="hljs-comment">//Q_bias:陀螺仪的偏差</span><br>	<span class="hljs-type">static</span> <span class="hljs-type">float</span> K_0, K_1;	<span class="hljs-comment">//卡尔曼增益  K_0:用于计算最优估计值  K_1:用于计算最优估计值的偏差 t_0/1:中间变量</span><br>	<span class="hljs-type">static</span> <span class="hljs-type">float</span> PP[<span class="hljs-number">2</span>][<span class="hljs-number">2</span>] = &#123; &#123; <span class="hljs-number">1</span>, <span class="hljs-number">0</span> &#125;,&#123; <span class="hljs-number">0</span>, <span class="hljs-number">1</span> &#125; &#125;;<span class="hljs-comment">//过程协方差矩阵P，初始值为单位阵</span><br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">		卡尔曼滤波的使用步骤</span><br><span class="hljs-comment">		(1) 选择状态量、观测量</span><br><span class="hljs-comment">		(2) 构建方程</span><br><span class="hljs-comment">		(3) 初始化参数</span><br><span class="hljs-comment">		(4) 带入公式迭代</span><br><span class="hljs-comment">		(5) 调节超参数P、Q</span><br><span class="hljs-comment">	*/</span><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	X(k)：k时刻系统状态				Z(k)：k时刻测量值</span><br><span class="hljs-comment">	U(k)：k时刻对系统控制量		H：测量系统参数</span><br><span class="hljs-comment">																					 方差</span><br><span class="hljs-comment">	A/F：状态转移矩阵					W(k)：过程噪声 ----&gt; Q</span><br><span class="hljs-comment">																					 方差	</span><br><span class="hljs-comment">	B：控制矩阵								V(k)：测量噪声 ----&gt; R</span><br><span class="hljs-comment">	</span><br><span class="hljs-comment">										离散控制系统</span><br><span class="hljs-comment">	系统描述：X(k|k-1) = AX(k-1|k-1) + BU(k) + (W(k))</span><br><span class="hljs-comment">	测量值：Z(k) = HX(k) + V(k)</span><br><span class="hljs-comment">	*/</span><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	1. 先验估计</span><br><span class="hljs-comment">* * *公式1：X(k|k-1) = AX(k-1|k-1) + BU(k) + (W(k))</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">		X = (Angle,Q_bias)</span><br><span class="hljs-comment">		A(1,1) = 1,A(1,2) = -dt</span><br><span class="hljs-comment">		A(2,1) = 0,A(2,2) = 1</span><br><span class="hljs-comment">		注：上下连“[”代表矩阵</span><br><span class="hljs-comment">		预测当前角度值：</span><br><span class="hljs-comment">		[ angle ] 	[1 -dt][ angle ]	 [dt]</span><br><span class="hljs-comment">		[ Q_bias] = [0  1 ][ Q_bias] + [ 0] * newGyro(加速度计测量值)</span><br><span class="hljs-comment">		故</span><br><span class="hljs-comment">		angle = angle - Q_bias*dt + newGyro * dt</span><br><span class="hljs-comment">		Q_bias = Q_bias</span><br><span class="hljs-comment">	*/</span><br>	pitch_kalman += (gyro - Q_bias) * dt; <span class="hljs-comment">//状态方程,角度值等于上次最优角度加角速度减零漂后积分</span><br>	<br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	2. 预测协方差矩阵</span><br><span class="hljs-comment">* * *公式2：P(k|k-1)=AP(k-1|k-1)A^T + Q </span><br><span class="hljs-comment"></span><br><span class="hljs-comment">		由先验估计有系统参数</span><br><span class="hljs-comment">				[1 -dt]</span><br><span class="hljs-comment">		A = [0  1 ]</span><br><span class="hljs-comment">		</span><br><span class="hljs-comment">		系统过程协方差噪声Q定义：</span><br><span class="hljs-comment">		| cov(angle,angle)  cov(Q_bias,angle) |</span><br><span class="hljs-comment">		|	cov(angle,Q_bias) cov(Q_bias,Q_bias)|</span><br><span class="hljs-comment">			 角度噪声和角速度漂移噪声相互独立</span><br><span class="hljs-comment">		| D( angle )  			0 	 |</span><br><span class="hljs-comment">	= |			0 			D( Q_bias )|</span><br><span class="hljs-comment">		又Q_angle和Q_bias的方差为常数，</span><br><span class="hljs-comment">		可由经验或计算得出</span><br><span class="hljs-comment">		</span><br><span class="hljs-comment">		令D( angle )  = Q_angle </span><br><span class="hljs-comment">			D( Q_bias ) = Q_gyro </span><br><span class="hljs-comment">			</span><br><span class="hljs-comment">		设上一次预测协方差矩阵为P(k-1)</span><br><span class="hljs-comment">											|a(k-1)  b(k-1)|</span><br><span class="hljs-comment">											|c(k-1)  d(k-1)|</span><br><span class="hljs-comment">		本次预测协方差矩阵P(k)</span><br><span class="hljs-comment">											|a(k)  b(k)|</span><br><span class="hljs-comment">		                  |c(k)  d(k)|</span><br><span class="hljs-comment">		由公式2：P(k|k-1)=AP(k-1|k-1)A^T + Q 得</span><br><span class="hljs-comment">		|a(k)  b(k)|		|1 -dt|	|a(k-1) b(k-1)| |1 	 0|		| D( angle )  			0 	 |</span><br><span class="hljs-comment">		|c(k)  d(k)| =  |0  1 | |c(k-1) d(k-1)| |-dt 1| + |			0 			D( Q_bias )|</span><br><span class="hljs-comment">	</span><br><span class="hljs-comment">		进一步得</span><br><span class="hljs-comment">		|a(k)  b(k)|		|a(k-1) - [c(k-1) + b(k-1)]*dt + d(dt)^2		b(k-1) - d(k-1)*dt|		| D( angle )  			0 	 |</span><br><span class="hljs-comment">	  |c(k)  d(k)| =  |				c(k-1) - d(k-1)*dt													d(k-1)		| + |			0 			D( Q_bias )|</span><br><span class="hljs-comment">		</span><br><span class="hljs-comment">		由于dt^2太小，故dt^2省略</span><br><span class="hljs-comment">	*/</span><br>	<br>	PP[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] = PP[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] + Q_angle - (PP[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>] + PP[<span class="hljs-number">1</span>][<span class="hljs-number">0</span>])*dt;<br>	PP[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>] = PP[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>] - PP[<span class="hljs-number">1</span>][<span class="hljs-number">1</span>]*dt;<br>	PP[<span class="hljs-number">1</span>][<span class="hljs-number">0</span>] = PP[<span class="hljs-number">1</span>][<span class="hljs-number">0</span>] - PP[<span class="hljs-number">1</span>][<span class="hljs-number">1</span>]*dt;<br>	PP[<span class="hljs-number">1</span>][<span class="hljs-number">1</span>] = PP[<span class="hljs-number">1</span>][<span class="hljs-number">1</span>] + Q_gyro;<br>	<br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">		3. 建立测量方程</span><br><span class="hljs-comment">			系统测量方程 Z(k) = HX(k) + V(k)</span><br><span class="hljs-comment">			系统测量系数 H = [1, 0]</span><br><span class="hljs-comment">			因为陀螺仪输出自带噪声</span><br><span class="hljs-comment">			所以</span><br><span class="hljs-comment">			measure = newAngle</span><br><span class="hljs-comment">	*/</span><br>	<br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">		4. 计算卡尔曼增益</span><br><span class="hljs-comment">* * *公式3：Kg(k)= P(k|k-1)H^T/(HP(k|k-1)H^T+R)</span><br><span class="hljs-comment">				Kg = (K_0,K_1) 对应angle,Q_bias增益</span><br><span class="hljs-comment">				H = (1,0)</span><br><span class="hljs-comment">	*/</span><br>	K_0 = PP[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] / (PP[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] + R_angle);<br>	K_1 = PP[<span class="hljs-number">1</span>][<span class="hljs-number">0</span>] / (PP[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] + R_angle);<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">		5. 计算当前最优化估计值</span><br><span class="hljs-comment">* * *公式4：X(k|k) = X(k|k-1) + kg(k)[z(k) - HX(k|k-1)]</span><br><span class="hljs-comment">		angle = angle + K_0*(newAngle - angle)</span><br><span class="hljs-comment">		Q_bias = Q_bias + K_1*(newAngle - angle)</span><br><span class="hljs-comment">	*/</span><br>		<br>	pitch_kalman = pitch_kalman + K_0 * (acc - pitch_kalman);<br>	Q_bias = Q_bias + K_1 * (acc - pitch_kalman);<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">		6. 更新协方差矩阵</span><br><span class="hljs-comment">* * *公式5：P(k|k)=[I-Kg(k)H]P(k|k-1)</span><br><span class="hljs-comment">	*/</span><br>	PP[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] = PP[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] - K_0 * PP[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>];<br>	PP[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>] = PP[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>] - K_0 * PP[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>];<br>	PP[<span class="hljs-number">1</span>][<span class="hljs-number">0</span>] = PP[<span class="hljs-number">1</span>][<span class="hljs-number">0</span>] - K_1 * PP[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>];<br>	PP[<span class="hljs-number">1</span>][<span class="hljs-number">1</span>] = PP[<span class="hljs-number">1</span>][<span class="hljs-number">1</span>] - K_1 * PP[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>];<br><br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">Kalman_Cal_Roll</span><span class="hljs-params">(<span class="hljs-type">float</span> acc,<span class="hljs-type">float</span> gyro)</span> <span class="hljs-comment">//卡尔曼滤波roll轴计算				</span><br>&#123;<br>	<span class="hljs-type">static</span> <span class="hljs-type">float</span> Q_bias;	<span class="hljs-comment">//Q_bias:陀螺仪的偏差  Angle_err:角度偏量 </span><br>	<span class="hljs-type">static</span> <span class="hljs-type">float</span> K_0, K_1;	<span class="hljs-comment">//卡尔曼增益  K_0:用于计算最优估计值  K_1:用于计算最优估计值的偏差 t_0/1:中间变量</span><br>	<span class="hljs-type">static</span> <span class="hljs-type">float</span> PP[<span class="hljs-number">2</span>][<span class="hljs-number">2</span>] = &#123; &#123; <span class="hljs-number">1</span>, <span class="hljs-number">0</span> &#125;,&#123; <span class="hljs-number">0</span>, <span class="hljs-number">1</span> &#125; &#125;;<span class="hljs-comment">//过程协方差矩阵P，初始值为单位阵</span><br>	roll_kalman += (gyro - Q_bias) * dt; <span class="hljs-comment">//状态方程,角度值等于上次最优角度加角速度减零漂后积分</span><br>	PP[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] = PP[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] + Q_angle - (PP[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>] + PP[<span class="hljs-number">1</span>][<span class="hljs-number">0</span>])*dt;<br>	PP[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>] = PP[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>] - PP[<span class="hljs-number">1</span>][<span class="hljs-number">1</span>]*dt;<br>	PP[<span class="hljs-number">1</span>][<span class="hljs-number">0</span>] = PP[<span class="hljs-number">1</span>][<span class="hljs-number">0</span>] - PP[<span class="hljs-number">1</span>][<span class="hljs-number">1</span>]*dt;<br>	PP[<span class="hljs-number">1</span>][<span class="hljs-number">1</span>] = PP[<span class="hljs-number">1</span>][<span class="hljs-number">1</span>] + Q_gyro;<br>	K_0 = PP[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] / (PP[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] + R_angle);<br>	K_1 = PP[<span class="hljs-number">1</span>][<span class="hljs-number">0</span>] / (PP[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] + R_angle);<br>	roll_kalman = roll_kalman + K_0 * (acc - roll_kalman);<br>	Q_bias = Q_bias + K_1 * (acc - roll_kalman);<br>	PP[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] = PP[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] - K_0 * PP[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>];<br>	PP[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>] = PP[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>] - K_0 * PP[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>];<br>	PP[<span class="hljs-number">1</span>][<span class="hljs-number">0</span>] = PP[<span class="hljs-number">1</span>][<span class="hljs-number">0</span>] - K_1 * PP[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>];<br>	PP[<span class="hljs-number">1</span>][<span class="hljs-number">1</span>] = PP[<span class="hljs-number">1</span>][<span class="hljs-number">1</span>] - K_1 * PP[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>];<br>&#125;<br><br></code></pre></td></tr></table></figure></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Kalman滤波算法</div>
+      <div>http://example.com/2023/11/27/KalmanFilter/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>邵亦舟</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>November 27, 2023</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>Licensed under</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2023/12/20/matrixEular/" title="旋转矩阵解算欧拉角">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">旋转矩阵解算欧拉角</span>
+                        <span class="visible-mobile">Previous</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/11/20/FreeRTOS/" title="FreeRTOS">
+                        <span class="hidden-mobile">FreeRTOS</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>Table of Contents</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>

@@ -1,0 +1,706 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="邵亦舟">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="第一篇博文，&lt;(￣︶￣)↗[GO!] 高精度是一类重要且基础的算法，主要应用场景是在进行大数运算时，如果使用语言编译器内置的基本数据结构的话肯定会溢出。拿C++来说，最大的整型long long大小也只有2的64次方。（当然python玩家不用担心这个问题）。 这时候高精度算法就体现了其价值：我们将输入的整型变量每一位存储在数组中，运算时直接通过数组来进行。 方便运算时低位运算进位至">
+<meta property="og:type" content="article">
+<meta property="og:title" content="简谈C++高精度算法">
+<meta property="og:url" content="http://example.com/2020/03/11/cppHighAlgorithm/index.html">
+<meta property="og:site_name" content="Funciaty">
+<meta property="og:description" content="第一篇博文，&lt;(￣︶￣)↗[GO!] 高精度是一类重要且基础的算法，主要应用场景是在进行大数运算时，如果使用语言编译器内置的基本数据结构的话肯定会溢出。拿C++来说，最大的整型long long大小也只有2的64次方。（当然python玩家不用担心这个问题）。 这时候高精度算法就体现了其价值：我们将输入的整型变量每一位存储在数组中，运算时直接通过数组来进行。 方便运算时低位运算进位至">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-03-10T16:47:50.000Z">
+<meta property="article:modified_time" content="2023-12-29T16:51:03.700Z">
+<meta property="article:author" content="邵亦舟">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>简谈C++高精度算法 - Funciaty</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.1.1"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>Archives</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>Categories</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>Tags</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>About</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="简谈C++高精度算法"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2020-03-11 00:47" pubdate>
+          March 11, 2020 am
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.7k words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          15 mins
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">简谈C++高精度算法</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>第一篇博文，&lt;(￣︶￣)↗[GO!]</p>
+<p>高精度是一类重要且基础的算法，主要应用场景是在进行大数运算时，如果使用语言编译器内置的基本数据结构的话肯定会溢出。拿C++来说，最大的整型long
+long大小也只有2的64次方。（当然python玩家不用担心这个问题）。</p>
+<p>这时候高精度算法就体现了其价值：我们将输入的整型变量每一位存储在数组中，运算时直接通过数组来进行。</p>
+<p>方便运算时低位运算进位至高位，可以将大数倒序存储在数组之中：
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-type">int</span> a[<span class="hljs-number">100</span>], len;<br>string num;<br>cin &gt;&gt; num;<br>len = num.<span class="hljs-built_in">length</span>();<br><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= len; i++) &#123;<br>	a[i] = num[len - i] - <span class="hljs-string">&#x27;0&#x27;</span>;  <br>	<span class="hljs-comment">// 读入的数字是string，这里char隐式转换为int</span><br>&#125;<br></code></pre></td></tr></table></figure> 这样就简单的完成了读入部分。 高精度数输出的实现：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = len; i &gt;= <span class="hljs-number">1</span>; i--) &#123;<br>	cout &lt;&lt; a[i];<br>&#125;<br>cout &lt;&lt; endl;<br></code></pre></td></tr></table></figure>
+<h1 id="高精度加单精度">高精度加单精度</h1>
+<p>回顾小学二年级学过的竖式加法 （逐渐毕导化），你就会发现实现的思路：
+<figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs tap"><br> <span class="hljs-number"> 2 </span>3<span class="hljs-number"> 1 </span>1  9<br>+).        1<br>—————————————<br> <span class="hljs-number"> 2 </span>3<span class="hljs-number"> 1 </span>1 10<br>即<br> <span class="hljs-number"> 2 </span>3<span class="hljs-number"> 1 </span>1 9<br>+).       1<br>—————————————<br> <span class="hljs-number"> 2 </span>3<span class="hljs-number"> 1 </span>2 0<br></code></pre></td></tr></table></figure>
+同时要注意进位时注意最高位的处理，并且同时更新len的值。这里while语句会重复判断最高位+1是否为0（注意：我们已经将数组a用memset初始化为0）：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-type">int</span> a[<span class="hljs-number">100</span>], len;<br>    string num;<br>    <span class="hljs-built_in">memset</span>(a, <span class="hljs-number">0</span>, <span class="hljs-built_in">sizeof</span>(a));<br>    cin &gt;&gt; num;<br>    len = num.<span class="hljs-built_in">length</span>();<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= len; i++) &#123;<br>        a[i] = num[len - i] - <span class="hljs-string">&#x27;0&#x27;</span>;<br>    &#125;<br><br>    <span class="hljs-type">int</span> x;<br>    cin &gt;&gt; x;<br>    a[<span class="hljs-number">1</span>] += x;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= len; i++) &#123;<br>        a[i + <span class="hljs-number">1</span>] += a[i] / <span class="hljs-number">10</span>;<br>        a[i] %= <span class="hljs-number">10</span>;<br>    &#125;<br>    <span class="hljs-keyword">while</span> (a[len + <span class="hljs-number">1</span>]) &#123;<br>        len++;<br>        a[len + <span class="hljs-number">1</span>] += a[len] / <span class="hljs-number">10</span>;<br>        a[len] %= <span class="hljs-number">10</span>;<br>    &#125;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = len; i &gt;= <span class="hljs-number">1</span>; i--) &#123;<br>        cout &lt;&lt; a[i];<br>    &#125;<br>    cout &lt;&lt; endl;<br>    <br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h1 id="高精度加高精度">高精度加高精度</h1>
+<p>和上一个案例相比，唯一的不同就是求和的过程。我们这里不再是只让存贮高精度的数组的第一位加上x，而是让每一位都加上另外一个高精度对应位置上的值。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-type">int</span> a1[<span class="hljs-number">100</span>], len1, a2[<span class="hljs-number">100</span>], len2;<br>len1 = <span class="hljs-built_in">max</span>(len1, len2); <span class="hljs-comment">// 注意引入 cmath库</span><br><br><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= len1; i++) &#123;<br>	a1[i] += a2[i];<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>最高位处理方法相同，这里直接放出代码。 （数组大小有点夸张哈）</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-type">int</span> a1[<span class="hljs-number">999999999</span>], len1, a2[<span class="hljs-number">999999999</span>], len2;<br>    string num1, num2;<br>    cin &gt;&gt; num1 &gt;&gt; num2;<br>    len1 = num1.<span class="hljs-built_in">length</span>();<br>    len2 = num2.<span class="hljs-built_in">length</span>();<br><br>    <span class="hljs-built_in">memset</span>(a1, <span class="hljs-number">0</span>, <span class="hljs-built_in">sizeof</span>(a1));<br>    <span class="hljs-built_in">memset</span>(a2, <span class="hljs-number">0</span>, <span class="hljs-built_in">sizeof</span>(a2));<br><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= len1; i++) &#123;<br>        a1[i] = num1[len1 - i] - <span class="hljs-string">&#x27;0&#x27;</span>;<br>    &#125;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= len2; i++) &#123;<br>        a2[i] = num2[len2 - i] - <span class="hljs-string">&#x27;0&#x27;</span>;<br>    &#125;<br>    len1 = <span class="hljs-built_in">max</span>(len1, len2);<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= len1; i++) &#123;<br>        a1[i] += a2[i];<br>        a1[i + <span class="hljs-number">1</span>] += a1[i] / <span class="hljs-number">10</span>;<br>        a1[i] %= <span class="hljs-number">10</span>;<br>    &#125;<br>    <span class="hljs-keyword">while</span> (a1[len1 + <span class="hljs-number">1</span>]) &#123;<br>        len1++;<br>        a1[len1 + <span class="hljs-number">1</span>] += a1[len1] / <span class="hljs-number">10</span>;<br>        a1[len1] %= <span class="hljs-number">10</span>;<br>    &#125;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = len1; i &gt;= <span class="hljs-number">1</span>; i--) &#123;<br>        cout &lt;&lt; a1[i];<br>    &#125;<br>    cout &lt;&lt; endl;<br>    <br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h1 id="高精度减单精度">高精度减单精度</h1>
+<p>emm..这里暂时不考虑结果出现负值的情况。 简单的思路：</p>
+<p>1.将高精度的最后一位减去单精度整数，当前指向最后一位</p>
+<p>2.如果当前位上的数小于0，就让当前指向的前一位减去1，并让当前位加上10，直到当前位上的数不小于0</p>
+<p>3.向前移动一位，继续执行第二步操作。</p>
+<p>除了上述过程和加法有所差异以外，最后的长度处理也与加法有所不同。进行相减操作以后，高精度整数的总长度有可能会变小，所以需要判断是否当前高精度整数的最高位已经是0，如果是0则需要让总长度减去1。</p>
+<p>核心代码：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs cpp">a[<span class="hljs-number">1</span>] -= x;<br><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i&lt;= len; i++) &#123;<br>	<span class="hljs-keyword">while</span> (a[i] &lt; <span class="hljs-number">0</span>) &#123;<br>		a[i + <span class="hljs-number">1</span>]--;<br>		a[i] += <span class="hljs-number">10</span>;<br>	&#125;<br>&#125;<br><br><span class="hljs-keyword">while</span> (len &gt; <span class="hljs-number">1</span> &amp;&amp; a[len] == <span class="hljs-number">0</span>) &#123;<br>	len --;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h1 id="高精度减高精度">高精度减高精度</h1>
+<p>不同之处在于，我们需要先对两个数的每- -位进行减法操作，
+并且在最后由于长度的减少值可能不止1，所以需要不断地判断最高位是否已经被减到0。
+并且，因为每一位上的数均在0…9之间，所以之前的while(a1[i] &lt; 0)写成if
+(a1[i] &lt; 0)就可以了。当然，这里用while也是没有任何问题的。 如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-type">int</span> a1[<span class="hljs-number">100</span>], len1, a2[<span class="hljs-number">100</span>], len2;<br>    <span class="hljs-built_in">memset</span>(a1, <span class="hljs-number">0</span>, <span class="hljs-built_in">sizeof</span>(a1));<br>    <span class="hljs-built_in">memset</span>(a2, <span class="hljs-number">0</span>, <span class="hljs-built_in">sizeof</span>(a2));<br>    string num1, num2;<br>    cin &gt;&gt; num1 &gt;&gt; num2;<br>    <span class="hljs-keyword">if</span> (num1.<span class="hljs-built_in">length</span>() &lt; num2.<span class="hljs-built_in">length</span>() || num1.<span class="hljs-built_in">length</span>() == num2.<span class="hljs-built_in">length</span>() &amp;&amp; num1 &lt; num2) &#123;<br>        <span class="hljs-built_in">swap</span>(num1, num2);<br>        cout &lt;&lt; <span class="hljs-string">&quot;-&quot;</span>;<br>    &#125;<br>    <br>    len1 = num1.<span class="hljs-built_in">length</span>();<br>    len2 = num2.<span class="hljs-built_in">length</span>();<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= len1; i++) &#123;<br>        a1[i] = num1[len1 - i] - <span class="hljs-string">&#x27;0&#x27;</span>;<br>    &#125;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= len2; i++) &#123;<br>        a2[i] = num2[len2 - i] - <span class="hljs-string">&#x27;0&#x27;</span>;<br>    &#125;                                                                      <br>	len1 = <span class="hljs-built_in">max</span>(len1, len2);<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= len1; i++) &#123;<br>        a1[i] -= a2[i];<br>        <span class="hljs-keyword">if</span> (a1[i] &lt; <span class="hljs-number">0</span>) &#123;<br>            a1[i + <span class="hljs-number">1</span>]--;<br>            a1[i] += <span class="hljs-number">10</span>;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">while</span> (len1 &gt; <span class="hljs-number">1</span> &amp;&amp; a1[len1] == <span class="hljs-number">0</span>) &#123;<br>        len1--;<br>    &#125;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = len1; i &gt;= <span class="hljs-number">1</span>; i--) &#123;<br>        cout &lt;&lt; a1[i];<br>    &#125;<br>    cout &lt;&lt; endl;<br>    <br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>高精度乘单精度跳过吧，咱们直接看～</p>
+<h1 id="高精度乘高精度">高精度乘高精度</h1>
+<p>高精度乘高精度是最值得探讨的一部分，所以，和之前不同的关键，在于如何把处理进位之前每一位上的乘积总和求出来。
+我们再用一个例子来看一看:</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs routeros">      3   2   1<br>x)        2   1<br>————————————————<br>     3<span class="hljs-number">*1</span> 2<span class="hljs-number">*1</span> 1<span class="hljs-number">*1</span><br> 3<span class="hljs-number">*2</span> 2<span class="hljs-number">*2</span> 1<span class="hljs-number">*2</span><br>————————————————<br> [4] [3] [2] [1]<br></code></pre></td></tr></table></figure>
+<p>我们发现，对于最终结果下标为i的位置来说，它包括的乘积对应的两个下标之和均为i
++
+1。因此，我们可以另外开辟一个新的数组来保存高精度乘法的结果，然后通过如下的方式来计算高精度乘法:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= len1; i++) &#123;<br><br>	<span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> j = <span class="hljs-number">1</span>; j &lt;= len2; j++) &#123;<br>		a[i + j - <span class="hljs-number">1</span>] += a1[i] * a2[j];<br>	&#125;<br>&#125;<br>len = len1 + len2 - <span class="hljs-number">1</span>;<br></code></pre></td></tr></table></figure>
+<p>完整代码：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;cstring&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;string&gt;</span></span><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-type">int</span> a1[<span class="hljs-number">100</span>], len1, a2[<span class="hljs-number">100</span>], len2;<br>    <span class="hljs-type">int</span> a[<span class="hljs-number">200</span>], len;<br>    <span class="hljs-built_in">memset</span>(a1, <span class="hljs-number">0</span>, <span class="hljs-built_in">sizeof</span>(a1));<br>    <span class="hljs-built_in">memset</span>(a2, <span class="hljs-number">0</span>, <span class="hljs-built_in">sizeof</span>(a2));<br>    <span class="hljs-built_in">memset</span>(a, <span class="hljs-number">0</span>, <span class="hljs-built_in">sizeof</span>(a));<br>    string num1, num2;<br>    cin &gt;&gt; num1;<br>    len1 = num1.<span class="hljs-built_in">length</span>();<br>    cin &gt;&gt; num2;<br>    len2 = num2.<span class="hljs-built_in">length</span>();<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= len1; i++) &#123;<br>        a1[i] = num1[len1 - i] - <span class="hljs-string">&#x27;0&#x27;</span>;<br>    &#125;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= len2; i++) &#123;<br>        a2[i] = num2[len2 - i] - <span class="hljs-string">&#x27;0&#x27;</span>;<br>    &#125;<br>    <br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= len1; i++) &#123;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> j = <span class="hljs-number">1</span>; j &lt;= len2; j++) &#123;<br>        	a[i + j - <span class="hljs-number">1</span>] += a1[i] * a2[j];<br>    	&#125;<br>    &#125;<br>    len = len1 + len2 - <span class="hljs-number">1</span>;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= len; i++) &#123;<br>        a[i + <span class="hljs-number">1</span>] += a[i] / <span class="hljs-number">10</span>;<br>        a[i] %= <span class="hljs-number">10</span>;<br>    &#125;<br>    <span class="hljs-keyword">while</span> (a[len + <span class="hljs-number">1</span>]) &#123;<br>        len++;<br>        a[len + <span class="hljs-number">1</span>] += a[len] / <span class="hljs-number">10</span>;<br>        a[len] %= <span class="hljs-number">10</span>;<br>    &#125;<br><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = len; i &gt;= <span class="hljs-number">1</span>; i--) &#123;<br>        cout &lt;&lt; a[i];<br>    &#125;<br>    cout &lt;&lt; endl;<br>    <br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>小结一下
+暂时不讨论除法和模运算，总的思路就是用int数组倒序读入每一位上的数，类比数学运算可以得到运算规则。处理乘法时务必要重新做一个变量存储result。</p>
+<p>源码可以去参考我的Github仓库：https://github.com/Billy233/cpp_HighAccuracy</p>
+<p>Billy Shao,</p>
+<p>3/11/2020记.</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>简谈C++高精度算法</div>
+      <div>http://example.com/2020/03/11/cppHighAlgorithm/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>邵亦舟</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>March 11, 2020</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>Licensed under</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/02/25/Archlinux/" title="硬核Linux发行版：记录一次完整的Archlinux安装过程">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">硬核Linux发行版：记录一次完整的Archlinux安装过程</span>
+                        <span class="visible-mobile">Previous</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>Table of Contents</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>
