@@ -24,7 +24,7 @@
 <meta property="og:description" content="图是一个特殊的数据结构，有向图和无向图通常都由边与节点构成。很多实际问题都可以抽象成图来解决，如果在一个有边权的图中给定两个点 \(start\) 和 \(end\)，在所有 \(start\) 连接 \(end\) 的路径中寻找边权值和最小的就是最短路径问题。 Floyd-Warshall 算法 Floyd 针对的是多源最短路径（一次性求所有节点之间的最短路径）基于 dp 的思想：求两">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2024-03-10T08:21:20.000Z">
-<meta property="article:modified_time" content="2024-03-13T07:49:46.523Z">
+<meta property="article:modified_time" content="2024-03-13T08:06:59.543Z">
 <meta property="article:author" content="邵亦舟">
 <meta name="twitter:card" content="summary_large_image">
   
@@ -219,7 +219,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          1.3k words
+          1.4k words
         
       </span>
     
@@ -230,7 +230,7 @@
         
         
         
-          11 mins
+          12 mins
         
       </span>
     
@@ -331,8 +331,19 @@ $）。</p>
 <p>$ mlogn $ 来自于每条边都可能导致一个新的节点入队列。</p>
 <p>因此，总的时间复杂度为 $ O((m+n)logn) $。</p>
 <p>空间复杂度： $ O(m + n) $</p>
-<h2 id="bellman-ford-算法">Bellman-Ford 算法</h2>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs CPP"><br></code></pre></td></tr></table></figure>
+<h2 id="bellman-ford-算法-解决负边权">Bellman-Ford 算法 ————
+解决负边权</h2>
+<p>与 Floyd 算法有相似之处，Floyd遍历了所有的节点 <span
+class="math inline">\(k\)</span>，<span
+class="math inline">\(k\)</span>作为中转判断是否使 <span
+class="math inline">\(i\)</span> 到 <span
+class="math inline">\(j\)</span> 的路径更短。</p>
+<p>Bellman 算法核心是遍历每一条边 <span
+class="math inline">\(j\)</span>，根据 <span class="math inline">\(u
+-&gt; j -&gt; v\)</span> 更新 <span class="math inline">\(v\)</span>
+的最短路径。</p>
+<p>E 是边数，如果 dis[u[j]] + w[j] &lt; dis[v[j]]，</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs CPP"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;bits/stdc++.h&gt;</span></span><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    ios::<span class="hljs-built_in">sync_with_stdio</span>(<span class="hljs-number">0</span>), cin.<span class="hljs-built_in">tie</span>(<span class="hljs-number">0</span>), cout.<span class="hljs-built_in">tie</span>(<span class="hljs-number">0</span>);<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
 <h2 id="spfa">SPFA*</h2>
 
                 
