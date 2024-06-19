@@ -1,0 +1,763 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="邵亦舟">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="一.图像矩阵基本操作 1234567891011121314# 定义Z &#x3D; np.zeros((2,4), np.uint8)# 全是1 z &#x3D; np.ones((2,4), np.int32)print(z.shape)print(z.dtype)m&#x3D;np.array([[14, 12, 3, 1], [10, 12, 114, 29], [67, 23, 52, 2]], np.float3">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenCV 算法笔记">
+<meta property="og:url" content="http://example.com/2024/06/18/cv/index.html">
+<meta property="og:site_name" content="Funciaty">
+<meta property="og:description" content="一.图像矩阵基本操作 1234567891011121314# 定义Z &#x3D; np.zeros((2,4), np.uint8)# 全是1 z &#x3D; np.ones((2,4), np.int32)print(z.shape)print(z.dtype)m&#x3D;np.array([[14, 12, 3, 1], [10, 12, 114, 29], [67, 23, 52, 2]], np.float3">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2024-06-18T08:21:20.000Z">
+<meta property="article:modified_time" content="2024-06-19T14:41:23.818Z">
+<meta property="article:author" content="邵亦舟">
+<meta property="article:tag" content="Algorithm">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>OpenCV 算法笔记 - Funciaty</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.1.1"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>Archives</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>Categories</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>Tags</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>About</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="OpenCV 算法笔记"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-06-18 16:21" pubdate>
+          June 18, 2024 pm
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.4k words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          13 mins
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">OpenCV 算法笔记</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="一.图像矩阵基本操作">一.图像矩阵基本操作</h2>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># 定义</span><br>Z = np.zeros((<span class="hljs-number">2</span>,<span class="hljs-number">4</span>), np.uint8)<br><span class="hljs-comment"># 全是1 z = np.ones((2,4), np.int32)</span><br><br><span class="hljs-built_in">print</span>(z.shape)<br><span class="hljs-built_in">print</span>(z.dtype)<br><br>m=np.array([[<span class="hljs-number">14</span>, <span class="hljs-number">12</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">10</span>, <span class="hljs-number">12</span>, <span class="hljs-number">114</span>, <span class="hljs-number">29</span>], [<span class="hljs-number">67</span>, <span class="hljs-number">23</span>, <span class="hljs-number">52</span>, <span class="hljs-number">2</span>]], np.float32)<br><br>m[<span class="hljs-number">1</span>,<span class="hljs-number">3</span>] <span class="hljs-comment">#第一行第三列 29</span><br>m[<span class="hljs-number">2</span>,:] <span class="hljs-comment">#第二行所有元素</span><br>m[<span class="hljs-number">0</span>:<span class="hljs-number">2</span>, <span class="hljs-number">1</span>:<span class="hljs-number">3</span>]<br><span class="hljs-comment">#  12 3</span><br><span class="hljs-comment"># 12 114</span><br></code></pre></td></tr></table></figure>
+<p>ndarray的加减法： <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs python">mat1+mat2<br></code></pre></td></tr></table></figure>
+注意对uchar类型的值超过255的数对255取模-1</p>
+<p>点乘： mat1*mat2 或 np.multiply(m1, m2)</p>
+<p>矩阵乘法： np.dot(m1, m2)</p>
+<p>幂运算：np.power(m1, 2)</p>
+<h2 id="二.仿射变换">二.仿射变换</h2>
+<h3 id="空间坐标变换">2.1 空间坐标变换</h3>
+<p>平移，放缩和旋转</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">src</span> = np.array([<span class="hljs-number">0</span>,<span class="hljs-number">0</span>],[<span class="hljs-number">200</span>,<span class="hljs-number">0</span>],[<span class="hljs-number">0</span>,<span class="hljs-number">200</span>], np.float32)<br><span class="hljs-attribute">dst</span> = np.array([<span class="hljs-number">0</span>,<span class="hljs-number">0</span>],[<span class="hljs-number">200</span>,<span class="hljs-number">0</span>],[<span class="hljs-number">0</span>,<span class="hljs-number">200</span>], np.float32)<br><br><span class="hljs-attribute">T</span> = cv.getAffineTransform(src, dst)<br></code></pre></td></tr></table></figure>
+<p>其中 <span class="math inline">\(dst = T\cdot src\)</span></p>
+<figure class="highlight maxima"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs maxima"><span class="hljs-built_in">cv</span>.getRotationMatrix2D(<span class="hljs-built_in">center</span>, angle, <span class="hljs-built_in">scale</span>)<br></code></pre></td></tr></table></figure>
+<p>center 变换中心坐标，angle角度值逆时针，scale放缩系数。</p>
+<h3 id="插值算法">2.2 插值算法</h3>
+<p>定义函数：<span class="math inline">\(I(y,x)\)</span> 是图像矩阵
+<span class="math inline">\(y\)</span> 行 <span
+class="math inline">\(x\)</span>列的值，定义二维函数：</p>
+<p><span class="math display">\[z=f_I(x,y)=I(x,y)\]</span></p>
+<p><span class="math display">\[ \begin{bmatrix} \hat{x}\\\hat{y}\\1
+\end{bmatrix} = A\begin{bmatrix} x\\y\\1 \end{bmatrix} \]</span></p>
+<p>要计算 <span class="math inline">\(f_O在(\tilde{x},
+\tilde{y})处的值，0\leqslant \tilde{x}\leqslant \tilde{W} - 1,0
+\leqslant y \leqslant \tilde{H} - 1\)</span>，其中<span
+class="math inline">\(\tilde{W}\)</span>和<span
+class="math inline">\(\tilde{H}\)</span>是手动设定的值。</p>
+<p><span class="math display">\[ \begin{bmatrix} x\\y\\1 \end{bmatrix}
+=  A^{-1}\begin{bmatrix} \hat{x}\\\hat{y}\\1 \end{bmatrix} \]</span></p>
+<p>以放大两倍为例：<span
+class="math inline">\(f_O(3,3)=f_I(1.5,1.5)\)</span>，但无定义此时需要插值估算<span
+class="math inline">\(f_O(3,3)\)</span>处的值了。</p>
+<p>需要注意的是 <span class="math inline">\((\tilde{x},
+\tilde{y})\)</span>逆仿射变换后的坐标 (𝑥, 𝑦)，如果 (𝑥, 𝑦) 落在 𝑓𝐼
+的定义域所在的矩形区域$[0, 𝑊 − 1] × [0, 𝐻 − 1]
+$内，则可以使用插值算法计算非整数坐 标处的函数值；如果(𝑥, 𝑦)
+落在第一象限的其他区域，甚至其他三个象限内，如图3-5
+中的第二种情况所示，那么就不需要用插值算法了，最常用的方法是直接令 <span
+class="math inline">\(𝑓_O(\tilde{x}, \tilde{y})\)</span>等于某一个
+预先设定好的常数即可。</p>
+<p><img
+src="https://funciaty.oss-cn-qingdao.aliyuncs.com/pic/cv0.png" srcset="/img/loading.gif" lazyload /></p>
+<h4 id="最近邻插值">2.2.1 最近邻插值</h4>
+<p>最近邻插值就是从(𝑥,
+𝑦)的四个相邻整数坐标中找到离它最近的一个，假设为(𝑥̂, 𝑦 )̂，然 后令 𝑓𝐼 (𝑥,
+𝑦) = 𝑓𝐼 (𝑥̂, 𝑦)̂ 。</p>
+<p>举例：(2.3, 4.7) 的四个相邻整数坐标分别为(2, 4)、(3, 4)、(2, 5)、(3,
+5)，离它最近的是 (2, 5)，则函数𝑓𝐼 在(2.3, 4.7) 处的函数值等于<span
+class="math inline">\(f_I\)</span> 在(2, 5) 处的值，即<span
+class="math inline">\(f_I(2.3, 4.7) = f_I(2, 5)\)</span>。</p>
+<p>使用最近邻插值方法完成图像几何变换，输出图像会出现锯齿状外观，对图像放大处理的效果会更明显。为了得到更好的效果，应使用更多的信息，而不仅仅使用最近像素的灰度值，常用的方法是双线性插值和三次样条插值。</p>
+<h4 id="双线性插值">2.2.2双线性插值</h4>
+<p><img
+src="https://funciaty.oss-cn-qingdao.aliyuncs.com/pic/cv1.png" srcset="/img/loading.gif" lazyload /></p>
+<p>记 <span class="math inline">\(a = |x-|x||\)</span>， <span
+class="math display">\[f_I(x,[y])=af_I([x] +
+1,[y])+(1-a)f_I([x],[y])\]</span> <span class="math display">\[f_I(x,[y]
++ 1)=af_I([x] + 1,[y] + 1)+(1-a)f_I([x],[y] + 1)\]</span></p>
+<p>得： <span class="math display">\[f_I(x,y)=bf_I(x,[y] +
+1)+(1-b)f_I(x,[y])\]</span></p>
+<p>这样对于非整数坐标处的函数值，就可以利用它的邻域的四个整数坐标处的函数值进行插值计算而得到。当然，如果先进行两次垂直方向上的插值，然后再进行水平方向上的插值，得到的结果是一样的。</p>
+<h3 id="仿射python-api">2.3 仿射python-API</h3>
+<p>OpenCV 提供了函数： <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs PYTHON">cv2.warpAffine(src, M, dsize[, dst[, flags[, borderMode[, borderValue ]]]])<br></code></pre></td></tr></table></figure> 来实现图像的仿射变换。 src
+输入图像矩阵</p>
+<p>M 2 行3 列的仿射变换矩阵</p>
+<p>dsize 二元元组(宽, 高)，输出图像的大小</p>
+<p>flags 插值法：INTE_NEAREST、INTE_LINEAR（默认）等</p>
+<p>borderMode 填充模式：BORDER_CONSTANT 等</p>
+<p>borderValue 当borderMode=BORDER_CONSTANT 时的填充值</p>
+<p>示例demo:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs PYTHON"><span class="hljs-comment"># -*- coding: utf-8 -*-</span><br><span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np<br><span class="hljs-keyword">import</span> cv2<br><span class="hljs-keyword">import</span> sys<br><span class="hljs-keyword">import</span> math<br><span class="hljs-comment">#主函数</span><br><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:<br>    <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(sys.argv)&gt;<span class="hljs-number">1</span>:<br>        image = cv2.imread(sys.argv[<span class="hljs-number">1</span>],cv2.CV_LOAD_IMAGE_GRAYSCALE)<br>    <span class="hljs-keyword">else</span>:<br>        <span class="hljs-built_in">print</span> <span class="hljs-string">&quot;Usage: python warpAffine.py image&quot;</span><br>        cv2.imwrite(<span class="hljs-string">&quot;img.jpg&quot;</span>,image)<br>        <span class="hljs-comment">#原图的高、宽</span><br>        h,w=image.shape[:<span class="hljs-number">2</span>]<br>        <span class="hljs-comment">#仿射变换矩阵，缩小2倍</span><br>        A1 = np.array([[<span class="hljs-number">0.5</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>],[<span class="hljs-number">0</span>,<span class="hljs-number">0.5</span>,<span class="hljs-number">0</span>]],np.float32)<br>        d1 = cv2.warpAffine(image,A1,(w,h),borderValue=<span class="hljs-number">125</span>)<br>        <span class="hljs-comment">#先缩小2倍，再平移</span><br>        A2 = np.array([[<span class="hljs-number">0.5</span>,<span class="hljs-number">0</span>,w/<span class="hljs-number">4</span>],[<span class="hljs-number">0</span>,<span class="hljs-number">0.5</span>,h/<span class="hljs-number">4</span>]],np.float32)<br>        d2 = cv2.warpAffine(image,A2,(w,h),borderValue=<span class="hljs-number">125</span>)<br>        <span class="hljs-comment">#在d2 的基础上，绕图像的中心点旋转</span><br>        A3 = cv2.getRotationMatrix2D((w/<span class="hljs-number">2.0</span>,h/<span class="hljs-number">2.0</span>),<span class="hljs-number">30</span>,<span class="hljs-number">1</span>)<br>        d3 = cv2.warpAffine(d2,A3,(w,h),borderValue=<span class="hljs-number">125</span>)<br>    cv2.imshow(<span class="hljs-string">&quot;image&quot;</span>,image)<br>        cv2.imshow(<span class="hljs-string">&quot;d1&quot;</span>,d1)<br>        cv2.imshow(<span class="hljs-string">&quot;d2&quot;</span>,d2)<br>        cv2.imshow(<span class="hljs-string">&quot;d3&quot;</span>,d3)<br>        cv2.waitKey(<span class="hljs-number">0</span>)<br>        cv2.destroyAllWindows()<br></code></pre></td></tr></table></figure>
+<p>在OpenCV 3.X 中通过定义函数： <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">void</span> <span class="hljs-title function_">rotate</span><span class="hljs-params">(InputArray src, OutputArray dst, <span class="hljs-type">int</span> rotateCode)</span><br></code></pre></td></tr></table></figure>
+来完成图像矩阵顺时针旋转90∘、180∘、270∘</p>
+<p>src 输入矩阵（单、多通道矩阵都可以）</p>
+<p>dst 输入矩阵</p>
+<p>rotateCode:</p>
+<p>ROTATE_90_CLOCKWISE：顺时针旋转90∘</p>
+<p>ROTATE_180：顺时针旋转180∘</p>
+<p>ROTATE_90_COUNTERCLOCKWISE：顺时针旋转270∘</p>
+<h2 id="三.-投影变换">三. 投影变换</h2>
+<p>类似于仿射变换，OpenCV 提供了函数： <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs PYTHON">cv2.warpPerspective(src,M,dsize[,dst[,flags[,borderMode[,borderValue]]]])<br></code></pre></td></tr></table></figure> 同理
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs PYTHON"><span class="hljs-comment">#计算投影变换矩阵</span><br>p=cv2.getPerspectiveTransform(src,dst)<br><span class="hljs-comment">#利用计算出的投影变换矩阵进行头像的投影变换</span><br>r = cv2.warpPerspective(image,p,(w,h),borderValue=<span class="hljs-number">125</span>)<br></code></pre></td></tr></table></figure></p>
+<h2 id="四.-极坐标变换">四. 极坐标变换</h2>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs PYTHON">x=np.array([[<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">2</span>],[<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">2</span>],[<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">2</span>]],np.float64)-<span class="hljs-number">1</span><br>y=np.array([[<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>],[<span class="hljs-number">1</span>,<span class="hljs-number">1</span>,<span class="hljs-number">1</span>],[<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>]],np.float64)-<span class="hljs-number">1</span><br>r,theta = cv2.cartToPolar(x,y,angleInDegrees=<span class="hljs-literal">True</span>)<br></code></pre></td></tr></table></figure>
+<p>x array 数组且数据类型为浮点型、float32 或者float64</p>
+<p>y 和x 具有相同尺寸和数据类型的array 数组</p>
+<p>angleInDegrees 当值为True 时，返回值angle 是角度；反之，为弧度</p>
+<p>在以上代码中，将9 个点的横坐标和纵坐标分别对应地放到3 × 3 的ndarray
+中，当然也可以都放到9 × 1 的ndarray 中，只要x 和y 对应就可以。</p>
+<p>同理</p>
+<figure class="highlight arcade"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs arcade">x,y=cv2.polarToCart(r,<span class="hljs-built_in">angle</span>,angleInDegrees=<span class="hljs-literal">True</span>)<br></code></pre></td></tr></table></figure>
+<p>线性极坐标函数 <figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">dst</span> = cv2.linearPolar(src,center=(<span class="hljs-number">508</span>,<span class="hljs-number">503</span>),maxRadius=<span class="hljs-number">550</span>,cv2.INTER_LINEAR)<br></code></pre></td></tr></table></figure></p>
+<p>src 输入图像矩阵（单、多通道矩阵都可以）</p>
+<p>dst 输出图像矩阵，其尺寸和src 是相同的</p>
+<p>center 极坐标变换中心</p>
+<p>maxRadius 极坐标变换的最大距离</p>
+<p>flags 插值算法，同函数resize、warpAffine 的插值算法</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Algorithm/" class="print-no-link">#Algorithm</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>OpenCV 算法笔记</div>
+      <div>http://example.com/2024/06/18/cv/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>邵亦舟</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>June 18, 2024</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>Licensed under</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/03/10/dijkstra/" title="图论最短路径算法">
+                        <span class="hidden-mobile">图论最短路径算法</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>Table of Contents</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>
